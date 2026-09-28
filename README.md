@@ -1,6 +1,4 @@
-# Setup
-
-## Setup for Mac (Windows and linux coming)
+# Setup for Mac (Windows and linux coming)
 
 Run:
 ```
@@ -12,7 +10,7 @@ brew install llvm
 
 While that's installing, get the [STM32Cube App](https://www.st.com/en/development-tools/stm32cubemx.html) 
 
-### For an existing project (DO THIS ONE)
+#### For an existing project (DO THIS ONE)
 
 Run the following:
 
@@ -23,11 +21,11 @@ git clone https://github.com/CMU-Robotics-Club/quads_firmware .
 
 Next, open up your project by selecting your QuadsSTMFirmware folder in the STM32Cube App.
 
-### For a new project: 
+#### For a new project: 
 
 Use QuadsSTMFirmware for the project name, and select STM32H753ZIT6 as the MCU (SUBJECT TO CHANGE). Select your home directory's Documents folder for saving for compatibility with the aliases we'll make later.
 
-## Compiling and more setup
+### Compiling and more setup
 
 Once both those steps are complete, go to the project directory in your terminal. That would be in the QuadsSTMFirmware directory wherever you put the project. Run the following:
 
