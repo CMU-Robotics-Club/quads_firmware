@@ -1,11 +1,26 @@
-# Setup for Mac (Windows and linux coming)
+# Setup for Mac and linux (Windows coming)
 
-Run:
+Run the following for mac:
 ```
 brew install --cask gcc-arm-embedded
 brew install cmake ninja
 brew install stlink openocd
 brew install llvm
+```
+or this for linux (needs verification):
+```
+sudo apt update
+sudo apt install -y \
+  cmake \
+  ninja-build \
+  stlink-tools \
+  openocd \
+  llvm \
+  clang \
+  gcc-arm-none-eabi \
+  libnewlib-arm-none-eabi \
+  gdb-arm-none-eabi \
+  binutils-arm-none-eabi
 ```
 
 While that's installing, get the [STM32Cube App](https://www.st.com/en/development-tools/stm32cubemx.html) 
