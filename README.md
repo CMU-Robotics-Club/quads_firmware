@@ -78,7 +78,8 @@ Open two terminal sessions.
 Terminal 1: Run `st-util`, and leave it running in the background.
 > This will start a `gdb` server on port 4242 that translates our GDB commands into ST-Link operations (allowing us to communicate with the MCU).
 
-Terminal 2: Run the following command:```bash
+Terminal 2: Run the following command:
+```bash
 gdb-multiarch build/Quads_STMFirmware.elf -ex 'target extended-remote :4242' -ex 'load' -ex 'b main' -ex 'c'
 ```
 > `gdb-multiarch` allows us to use GDB for different systems. Alternatively, you can use `arm-none-eabi-gdb` (arm architecture, no OS, EABI), which is bundled as part of `gdb-multiarch` on Ubuntu.
