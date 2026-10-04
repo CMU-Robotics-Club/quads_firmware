@@ -7,7 +7,7 @@ brew install cmake ninja
 brew install stlink openocd
 brew install llvm
 ```
-or this for linux (needs verification):
+or this for linux:
 ```
 sudo apt update
 sudo apt install -y \
@@ -20,7 +20,8 @@ sudo apt install -y \
   gcc-arm-none-eabi \
   libnewlib-arm-none-eabi \
   gdb-arm-none-eabi \
-  binutils-arm-none-eabi
+  binutils-arm-none-eabi \
+  gdb-multiarch
 ```
 
 While that's installing, get the [STM32Cube App](https://www.st.com/en/development-tools/stm32cubemx.html) 
@@ -61,3 +62,33 @@ alias flashstm="arm-none-eabi-objcopy -O binary build/QuadsSTMFirmware.elf build
 Resource/restart your terminal. Then, in the project's root dir, run `makestm`, which should compile the project. Then with the STM connected to your computer with USB, run `flashstm`, and that's it!
 
 Remember to always run `makestm` to update your compilations before running `flashstm`.
+
+### Debugging
+
+To debug our code, we will use the `gdb` debugger. Follow the below instructions to start the debugger. If you have any questions on what to do with it, search up GDB's documentation. 
+
+Before you start debugging, ensure the following:
+1. You have successfully flashed your code onto the MCU using `flashstm`
+2. Your device is currently connected to the board
+
+Open two terminal sessions.
+
+Terminal 1: Run `st-util`, and leave it running in the background.
+> This will start a `gdb` server on port 4242 that translates our GDB commands into ST-Link operations (allowing us to communicate with the MCU).
+
+Terminal 2: Run the following command:```bash
+gdb-multiarch build/Quads_STMFirmware.elf -ex 'target extended-remote :4242' -ex 'load' -ex 'b main' -ex 'c'
+```
+> `gdb-multiarch` allows us to use GDB for different systems. Alternatively, you can use `arm-none-eabi-gdb` (arm architecture, no OS, EABI), which is bundled as part of `gdb-multiarch` on Ubuntu.
+
+This will connect to the GDB server and begin debugging at the start of your `main` function.
+
+Basic GDB usage:
+- Set a breakpoint: `b <line #>` or `break <line #>`
+- Set a breakpoint: `b <function>` or `break <function>`
+- Delete a breakpoint: `d <breakpoint #>` or `delete <breakpoint #>`
+- Step over: `n` or `next`
+- Continue: `c` or `continue
+- Print variable: `p <variable name>` or `print <variable name>`
+- Track variable: `display <variable name>`
+  - Prints the value of a variable each time you hit a breakpoint or you step over to another line
