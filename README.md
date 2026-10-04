@@ -65,6 +65,8 @@ Remember to always run `makestm` to update your compilations before running `fla
 
 ### Debugging
 
+(Not yet tested for MacOS!)
+
 To debug our code, we will use the `gdb` debugger. Follow the below instructions to start the debugger. If you have any questions on what to do with it, search up GDB's documentation. 
 
 Before you start debugging, ensure the following:
