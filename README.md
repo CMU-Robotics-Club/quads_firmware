@@ -82,7 +82,7 @@ Terminal 2: Run the following command:
 ```bash
 gdb-multiarch build/Quads_STMFirmware.elf -ex 'target extended-remote :4242' -ex 'load' -ex 'b main' -ex 'c'
 ```
-> `gdb-multiarch` allows us to use GDB for different systems. Alternatively, you can use `arm-none-eabi-gdb` (arm architecture, no OS, EABI), which is bundled as part of `gdb-multiarch` on Ubuntu.
+> `gdb-multiarch` allows us to use GDB for different systems. Alternatively, you can download `arm-none-eabi-gdb` (arm architecture, no OS, EABI), though this is part of `gdb-multiarch` on Ubuntu.
 
 This will connect to the GDB server and begin debugging at the start of your `main` function.
 
