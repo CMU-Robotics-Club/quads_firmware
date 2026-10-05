@@ -99,5 +99,6 @@ Basic GDB usage:
 - Step over: `n` or `next`
 - Continue: `c` or `continue
 - Print variable: `p <variable name>` or `print <variable name>`
+  - When printing, you may need to type "up" to go up the call stack to go to the main where your variables are defined and in-scope
 - Track variable: `display <variable name>`
   - Prints the value of a variable each time you hit a breakpoint or you step over to another line

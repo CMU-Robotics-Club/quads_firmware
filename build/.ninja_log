@@ -5,7 +5,7 @@
 4	593	1791227797059606576	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c.obj	e8b70d35f4526d59
 3	669	1791227797058690165	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32h7xx.c.obj	b4a4e108895f4e4d
 3	572	1791227797057894378	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj	84ff9916f60034d6
-2	623	1791227797057570713	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj	dae449349a4855f9
+3	356	1791228256193578585	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj	dae449349a4855f9
 4	634	1791227797058988788	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c.obj	f63ecd3531906a24
 3	573	1791227797058230542	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj	323b0f50e2f584aa
 5	557	1791227797060299072	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash.c.obj	771f1e9e71f5de1b
@@ -24,6 +24,4 @@
 954	1169	1791227798009843555	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim.c.obj	eff6790b543cebbc
 969	1169	1791227798023855764	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c.obj	711c82d08874b080
 637	1173	1791227797691945817	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c.c.obj	9aa1901e98dd30ab
-1173	1310	1791227798228051427	QuadsSTMFirmware.elf	bf39b5f3c7ac8f6
-3	356	1791228256193578585	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj	dae449349a4855f9
 356	519	1791228256546111111	QuadsSTMFirmware.elf	bf39b5f3c7ac8f6
