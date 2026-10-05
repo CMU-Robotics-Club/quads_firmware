@@ -5,7 +5,7 @@ enable_language(C ASM)
 set(MX_Defines_Syms 
 	USE_PWR_LDO_SUPPLY 
 	USE_HAL_DRIVER 
-	STM32H753xx
+	STM32H723xx
     $<$<CONFIG:Debug>:DEBUG>
 )
 
@@ -21,12 +21,11 @@ set(MX_Include_Dirs
 # STM32CubeMX generated application sources
 set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/gpio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32h7xx_it.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/stm32h7xx_hal_msp.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/sysmem.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Core/Src/syscalls.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32h753xx.s
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../startup_stm32h723xx.s
 )
 
 # STM32 HAL/LL Drivers

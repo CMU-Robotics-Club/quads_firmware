@@ -38,7 +38,7 @@ Next, open up your project by selecting your QuadsSTMFirmware folder in the STM3
 
 #### For a new project: 
 
-Use QuadsSTMFirmware for the project name, and select STM32H753ZIT6 as the MCU (SUBJECT TO CHANGE). Select your home directory's Documents folder for saving for compatibility with the aliases we'll make later.
+Use QuadsSTMFirmware for the project name, and select STM32H723ZGT6 as the MCU. Select your home directory's Documents folder for saving for compatibility with the aliases we'll make later.
 
 Once the project has been created, go to Project Manager -> Project -> Toolchain/IDE Select in the dropdown CMake.
 

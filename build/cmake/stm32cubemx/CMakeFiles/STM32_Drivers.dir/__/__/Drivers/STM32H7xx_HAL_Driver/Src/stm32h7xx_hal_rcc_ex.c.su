@@ -1,5 +1,5 @@
-/Users/advan/Documents/QuadsSTMFirmware/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:105:19:HAL_RCCEx_PeriphCLKConfig	328	static
-/Users/advan/Documents/QuadsSTMFirmware/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:1692:6:HAL_RCCEx_GetPeriphCLKConfig	72	static
+/Users/advan/Documents/QuadsSTMFirmware/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:105:19:HAL_RCCEx_PeriphCLKConfig	312	static
+/Users/advan/Documents/QuadsSTMFirmware/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:1692:6:HAL_RCCEx_GetPeriphCLKConfig	48	static
 /Users/advan/Documents/QuadsSTMFirmware/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:1881:10:HAL_RCCEx_GetPeriphCLKFreq	72	static
 /Users/advan/Documents/QuadsSTMFirmware/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:2904:10:HAL_RCCEx_GetD1PCLK1Freq	8	static
 /Users/advan/Documents/QuadsSTMFirmware/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:2921:10:HAL_RCCEx_GetD3PCLK1Freq	8	static
