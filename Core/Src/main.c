@@ -96,10 +96,12 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  int a = 0;
   while (1)
   {
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0); // 1. Toggle LED state
     HAL_Delay(500);
+    a++;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -3923,7 +3923,7 @@ LOAD /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-no
                 0x08000000                g_pfnVectors
                 0x080002cc                        . = ALIGN (0x4)
 
-.text           0x080002cc     0x1ad8
+.text           0x080002cc     0x1ae4
                 0x080002cc                        . = ALIGN (0x4)
  *(.text)
  *(.text*)
@@ -4008,274 +4008,274 @@ LOAD /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-no
  .text.HAL_Delay
                 0x08001a54       0x48 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.c.obj
                 0x08001a54                HAL_Delay
- .text.main     0x08001a9c       0x2c CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
+ .text.main     0x08001a9c       0x38 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
                 0x08001a9c                main
  .text.SystemClock_Config
-                0x08001ac8       0xbc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
-                0x08001ac8                SystemClock_Config
+                0x08001ad4       0xbc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
+                0x08001ad4                SystemClock_Config
  .text.MX_GPIO_Init
-                0x08001b84       0x68 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
+                0x08001b90       0x68 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
  .text.MPU_Config
-                0x08001bec       0x58 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
+                0x08001bf8       0x58 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
  .text.Error_Handler
-                0x08001c44        0xc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
-                0x08001c44                Error_Handler
+                0x08001c50        0xc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
+                0x08001c50                Error_Handler
  .text.NMI_Handler
-                0x08001c50        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
-                0x08001c50                NMI_Handler
+                0x08001c5c        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+                0x08001c5c                NMI_Handler
  .text.HardFault_Handler
-                0x08001c58        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
-                0x08001c58                HardFault_Handler
+                0x08001c64        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+                0x08001c64                HardFault_Handler
  .text.MemManage_Handler
-                0x08001c60        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
-                0x08001c60                MemManage_Handler
+                0x08001c6c        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+                0x08001c6c                MemManage_Handler
  .text.BusFault_Handler
-                0x08001c68        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
-                0x08001c68                BusFault_Handler
+                0x08001c74        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+                0x08001c74                BusFault_Handler
  .text.UsageFault_Handler
-                0x08001c70        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
-                0x08001c70                UsageFault_Handler
+                0x08001c7c        0x8 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+                0x08001c7c                UsageFault_Handler
  .text.SVC_Handler
-                0x08001c78        0xc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
-                0x08001c78                SVC_Handler
- .text.DebugMon_Handler
                 0x08001c84        0xc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
-                0x08001c84                DebugMon_Handler
- .text.PendSV_Handler
+                0x08001c84                SVC_Handler
+ .text.DebugMon_Handler
                 0x08001c90        0xc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
-                0x08001c90                PendSV_Handler
- .text.SysTick_Handler
+                0x08001c90                DebugMon_Handler
+ .text.PendSV_Handler
                 0x08001c9c        0xc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
-                0x08001c9c                SysTick_Handler
+                0x08001c9c                PendSV_Handler
+ .text.SysTick_Handler
+                0x08001ca8        0xc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+                0x08001ca8                SysTick_Handler
  .text.HAL_MspInit
-                0x08001ca8       0x34 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
-                0x08001ca8                HAL_MspInit
+                0x08001cb4       0x34 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
+                0x08001cb4                HAL_MspInit
  .text.Reset_Handler
-                0x08001cdc       0x54 CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
-                0x08001cdc                Reset_Handler
+                0x08001ce8       0x54 CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
+                0x08001ce8                Reset_Handler
  .text.Default_Handler
-                0x08001d30        0x2 CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
-                0x08001d30                DMA1_Stream3_IRQHandler
-                0x08001d30                EXTI2_IRQHandler
-                0x08001d30                TIM8_CC_IRQHandler
-                0x08001d30                UART8_IRQHandler
-                0x08001d30                SPI4_IRQHandler
-                0x08001d30                FDCAN3_IT0_IRQHandler
-                0x08001d30                TIM1_CC_IRQHandler
-                0x08001d30                BDMA_Channel6_IRQHandler
-                0x08001d30                DMA2_Stream5_IRQHandler
-                0x08001d30                DMA1_Stream5_IRQHandler
-                0x08001d30                CORDIC_IRQHandler
-                0x08001d30                BDMA_Channel1_IRQHandler
-                0x08001d30                TAMP_STAMP_IRQHandler
-                0x08001d30                EXTI3_IRQHandler
-                0x08001d30                LPTIM4_IRQHandler
-                0x08001d30                TIM8_TRG_COM_TIM14_IRQHandler
-                0x08001d30                LPTIM2_IRQHandler
-                0x08001d30                DFSDM1_FLT1_IRQHandler
-                0x08001d30                DMAMUX2_OVR_IRQHandler
-                0x08001d30                TIM8_UP_TIM13_IRQHandler
-                0x08001d30                I2C3_ER_IRQHandler
-                0x08001d30                DFSDM1_FLT2_IRQHandler
-                0x08001d30                I2C5_EV_IRQHandler
-                0x08001d30                USART10_IRQHandler
-                0x08001d30                MDMA_IRQHandler
-                0x08001d30                LPTIM3_IRQHandler
-                0x08001d30                HSEM1_IRQHandler
-                0x08001d30                EXTI0_IRQHandler
-                0x08001d30                I2C2_EV_IRQHandler
-                0x08001d30                DMA1_Stream2_IRQHandler
-                0x08001d30                FPU_IRQHandler
-                0x08001d30                OTG_HS_WKUP_IRQHandler
-                0x08001d30                FDCAN1_IT1_IRQHandler
-                0x08001d30                LTDC_ER_IRQHandler
-                0x08001d30                DMA2_Stream2_IRQHandler
-                0x08001d30                SPI1_IRQHandler
-                0x08001d30                OCTOSPI1_IRQHandler
-                0x08001d30                TIM6_DAC_IRQHandler
-                0x08001d30                DMA2_Stream3_IRQHandler
-                0x08001d30                OCTOSPI2_IRQHandler
-                0x08001d30                DFSDM1_FLT3_IRQHandler
-                0x08001d30                TIM23_IRQHandler
-                0x08001d30                USART6_IRQHandler
-                0x08001d30                TIM17_IRQHandler
-                0x08001d30                USART3_IRQHandler
-                0x08001d30                BDMA_Channel7_IRQHandler
-                0x08001d30                LPTIM5_IRQHandler
-                0x08001d30                UART5_IRQHandler
-                0x08001d30                ADC3_IRQHandler
-                0x08001d30                DMA2_Stream0_IRQHandler
-                0x08001d30                TIM4_IRQHandler
-                0x08001d30                BDMA_Channel2_IRQHandler
-                0x08001d30                I2C1_EV_IRQHandler
-                0x08001d30                DMA1_Stream6_IRQHandler
-                0x08001d30                DMAMUX1_OVR_IRQHandler
-                0x08001d30                DMA1_Stream1_IRQHandler
-                0x08001d30                TIM16_IRQHandler
-                0x08001d30                UART4_IRQHandler
-                0x08001d30                BDMA_Channel5_IRQHandler
-                0x08001d30                TIM3_IRQHandler
-                0x08001d30                RCC_IRQHandler
-                0x08001d30                UART9_IRQHandler
-                0x08001d30                TIM8_BRK_TIM12_IRQHandler
-                0x08001d30                TIM1_TRG_COM_IRQHandler
-                0x08001d30                Default_Handler
-                0x08001d30                ECC_IRQHandler
-                0x08001d30                FMAC_IRQHandler
-                0x08001d30                CEC_IRQHandler
-                0x08001d30                EXTI15_10_IRQHandler
-                0x08001d30                BDMA_Channel0_IRQHandler
-                0x08001d30                ADC_IRQHandler
-                0x08001d30                I2C5_ER_IRQHandler
-                0x08001d30                DMA1_Stream7_IRQHandler
-                0x08001d30                SPI5_IRQHandler
-                0x08001d30                TIM7_IRQHandler
-                0x08001d30                FDCAN3_IT1_IRQHandler
-                0x08001d30                SDMMC1_IRQHandler
-                0x08001d30                TIM5_IRQHandler
-                0x08001d30                DMA2_Stream7_IRQHandler
-                0x08001d30                TIM15_IRQHandler
-                0x08001d30                PVD_AVD_IRQHandler
-                0x08001d30                I2C3_EV_IRQHandler
-                0x08001d30                EXTI9_5_IRQHandler
-                0x08001d30                RTC_WKUP_IRQHandler
-                0x08001d30                LTDC_IRQHandler
-                0x08001d30                ETH_WKUP_IRQHandler
-                0x08001d30                SPDIF_RX_IRQHandler
-                0x08001d30                SPI2_IRQHandler
-                0x08001d30                OTG_HS_EP1_IN_IRQHandler
-                0x08001d30                DMA1_Stream0_IRQHandler
-                0x08001d30                TIM24_IRQHandler
-                0x08001d30                CRS_IRQHandler
-                0x08001d30                EXTI4_IRQHandler
-                0x08001d30                RNG_IRQHandler
-                0x08001d30                FDCAN2_IT1_IRQHandler
-                0x08001d30                ETH_IRQHandler
-                0x08001d30                TIM1_UP_IRQHandler
-                0x08001d30                BDMA_Channel4_IRQHandler
-                0x08001d30                OTG_HS_EP1_OUT_IRQHandler
-                0x08001d30                WWDG_IRQHandler
-                0x08001d30                SPI6_IRQHandler
-                0x08001d30                MDIOS_IRQHandler
-                0x08001d30                I2C4_EV_IRQHandler
-                0x08001d30                FDCAN2_IT0_IRQHandler
-                0x08001d30                LPUART1_IRQHandler
-                0x08001d30                FDCAN1_IT0_IRQHandler
-                0x08001d30                TIM2_IRQHandler
-                0x08001d30                OTG_HS_IRQHandler
-                0x08001d30                DMA2D_IRQHandler
-                0x08001d30                TIM1_BRK_IRQHandler
-                0x08001d30                EXTI1_IRQHandler
-                0x08001d30                SDMMC2_IRQHandler
-                0x08001d30                BDMA_Channel3_IRQHandler
-                0x08001d30                DTS_IRQHandler
-                0x08001d30                UART7_IRQHandler
-                0x08001d30                MDIOS_WKUP_IRQHandler
-                0x08001d30                USART2_IRQHandler
-                0x08001d30                DFSDM1_FLT0_IRQHandler
-                0x08001d30                SAI4_IRQHandler
-                0x08001d30                I2C2_ER_IRQHandler
-                0x08001d30                DMA2_Stream1_IRQHandler
-                0x08001d30                FLASH_IRQHandler
-                0x08001d30                DMA2_Stream4_IRQHandler
-                0x08001d30                USART1_IRQHandler
-                0x08001d30                SPI3_IRQHandler
-                0x08001d30                WAKEUP_PIN_IRQHandler
-                0x08001d30                DMA1_Stream4_IRQHandler
-                0x08001d30                I2C1_ER_IRQHandler
-                0x08001d30                FMC_IRQHandler
-                0x08001d30                FDCAN_CAL_IRQHandler
-                0x08001d30                SWPMI1_IRQHandler
-                0x08001d30                COMP1_IRQHandler
-                0x08001d30                LPTIM1_IRQHandler
-                0x08001d30                DCMI_PSSI_IRQHandler
-                0x08001d30                I2C4_ER_IRQHandler
-                0x08001d30                DMA2_Stream6_IRQHandler
-                0x08001d30                SAI1_IRQHandler
-                0x08001d30                RTC_Alarm_IRQHandler
- .text.memset   0x08001d32       0x10 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+dp/hard/libg_nano.a(libc_a-memset.o)
-                0x08001d32                memset
- *fill*         0x08001d42        0x2 
+                0x08001d3c        0x2 CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
+                0x08001d3c                DMA1_Stream3_IRQHandler
+                0x08001d3c                EXTI2_IRQHandler
+                0x08001d3c                TIM8_CC_IRQHandler
+                0x08001d3c                UART8_IRQHandler
+                0x08001d3c                SPI4_IRQHandler
+                0x08001d3c                FDCAN3_IT0_IRQHandler
+                0x08001d3c                TIM1_CC_IRQHandler
+                0x08001d3c                BDMA_Channel6_IRQHandler
+                0x08001d3c                DMA2_Stream5_IRQHandler
+                0x08001d3c                DMA1_Stream5_IRQHandler
+                0x08001d3c                CORDIC_IRQHandler
+                0x08001d3c                BDMA_Channel1_IRQHandler
+                0x08001d3c                TAMP_STAMP_IRQHandler
+                0x08001d3c                EXTI3_IRQHandler
+                0x08001d3c                LPTIM4_IRQHandler
+                0x08001d3c                TIM8_TRG_COM_TIM14_IRQHandler
+                0x08001d3c                LPTIM2_IRQHandler
+                0x08001d3c                DFSDM1_FLT1_IRQHandler
+                0x08001d3c                DMAMUX2_OVR_IRQHandler
+                0x08001d3c                TIM8_UP_TIM13_IRQHandler
+                0x08001d3c                I2C3_ER_IRQHandler
+                0x08001d3c                DFSDM1_FLT2_IRQHandler
+                0x08001d3c                I2C5_EV_IRQHandler
+                0x08001d3c                USART10_IRQHandler
+                0x08001d3c                MDMA_IRQHandler
+                0x08001d3c                LPTIM3_IRQHandler
+                0x08001d3c                HSEM1_IRQHandler
+                0x08001d3c                EXTI0_IRQHandler
+                0x08001d3c                I2C2_EV_IRQHandler
+                0x08001d3c                DMA1_Stream2_IRQHandler
+                0x08001d3c                FPU_IRQHandler
+                0x08001d3c                OTG_HS_WKUP_IRQHandler
+                0x08001d3c                FDCAN1_IT1_IRQHandler
+                0x08001d3c                LTDC_ER_IRQHandler
+                0x08001d3c                DMA2_Stream2_IRQHandler
+                0x08001d3c                SPI1_IRQHandler
+                0x08001d3c                OCTOSPI1_IRQHandler
+                0x08001d3c                TIM6_DAC_IRQHandler
+                0x08001d3c                DMA2_Stream3_IRQHandler
+                0x08001d3c                OCTOSPI2_IRQHandler
+                0x08001d3c                DFSDM1_FLT3_IRQHandler
+                0x08001d3c                TIM23_IRQHandler
+                0x08001d3c                USART6_IRQHandler
+                0x08001d3c                TIM17_IRQHandler
+                0x08001d3c                USART3_IRQHandler
+                0x08001d3c                BDMA_Channel7_IRQHandler
+                0x08001d3c                LPTIM5_IRQHandler
+                0x08001d3c                UART5_IRQHandler
+                0x08001d3c                ADC3_IRQHandler
+                0x08001d3c                DMA2_Stream0_IRQHandler
+                0x08001d3c                TIM4_IRQHandler
+                0x08001d3c                BDMA_Channel2_IRQHandler
+                0x08001d3c                I2C1_EV_IRQHandler
+                0x08001d3c                DMA1_Stream6_IRQHandler
+                0x08001d3c                DMAMUX1_OVR_IRQHandler
+                0x08001d3c                DMA1_Stream1_IRQHandler
+                0x08001d3c                TIM16_IRQHandler
+                0x08001d3c                UART4_IRQHandler
+                0x08001d3c                BDMA_Channel5_IRQHandler
+                0x08001d3c                TIM3_IRQHandler
+                0x08001d3c                RCC_IRQHandler
+                0x08001d3c                UART9_IRQHandler
+                0x08001d3c                TIM8_BRK_TIM12_IRQHandler
+                0x08001d3c                TIM1_TRG_COM_IRQHandler
+                0x08001d3c                Default_Handler
+                0x08001d3c                ECC_IRQHandler
+                0x08001d3c                FMAC_IRQHandler
+                0x08001d3c                CEC_IRQHandler
+                0x08001d3c                EXTI15_10_IRQHandler
+                0x08001d3c                BDMA_Channel0_IRQHandler
+                0x08001d3c                ADC_IRQHandler
+                0x08001d3c                I2C5_ER_IRQHandler
+                0x08001d3c                DMA1_Stream7_IRQHandler
+                0x08001d3c                SPI5_IRQHandler
+                0x08001d3c                TIM7_IRQHandler
+                0x08001d3c                FDCAN3_IT1_IRQHandler
+                0x08001d3c                SDMMC1_IRQHandler
+                0x08001d3c                TIM5_IRQHandler
+                0x08001d3c                DMA2_Stream7_IRQHandler
+                0x08001d3c                TIM15_IRQHandler
+                0x08001d3c                PVD_AVD_IRQHandler
+                0x08001d3c                I2C3_EV_IRQHandler
+                0x08001d3c                EXTI9_5_IRQHandler
+                0x08001d3c                RTC_WKUP_IRQHandler
+                0x08001d3c                LTDC_IRQHandler
+                0x08001d3c                ETH_WKUP_IRQHandler
+                0x08001d3c                SPDIF_RX_IRQHandler
+                0x08001d3c                SPI2_IRQHandler
+                0x08001d3c                OTG_HS_EP1_IN_IRQHandler
+                0x08001d3c                DMA1_Stream0_IRQHandler
+                0x08001d3c                TIM24_IRQHandler
+                0x08001d3c                CRS_IRQHandler
+                0x08001d3c                EXTI4_IRQHandler
+                0x08001d3c                RNG_IRQHandler
+                0x08001d3c                FDCAN2_IT1_IRQHandler
+                0x08001d3c                ETH_IRQHandler
+                0x08001d3c                TIM1_UP_IRQHandler
+                0x08001d3c                BDMA_Channel4_IRQHandler
+                0x08001d3c                OTG_HS_EP1_OUT_IRQHandler
+                0x08001d3c                WWDG_IRQHandler
+                0x08001d3c                SPI6_IRQHandler
+                0x08001d3c                MDIOS_IRQHandler
+                0x08001d3c                I2C4_EV_IRQHandler
+                0x08001d3c                FDCAN2_IT0_IRQHandler
+                0x08001d3c                LPUART1_IRQHandler
+                0x08001d3c                FDCAN1_IT0_IRQHandler
+                0x08001d3c                TIM2_IRQHandler
+                0x08001d3c                OTG_HS_IRQHandler
+                0x08001d3c                DMA2D_IRQHandler
+                0x08001d3c                TIM1_BRK_IRQHandler
+                0x08001d3c                EXTI1_IRQHandler
+                0x08001d3c                SDMMC2_IRQHandler
+                0x08001d3c                BDMA_Channel3_IRQHandler
+                0x08001d3c                DTS_IRQHandler
+                0x08001d3c                UART7_IRQHandler
+                0x08001d3c                MDIOS_WKUP_IRQHandler
+                0x08001d3c                USART2_IRQHandler
+                0x08001d3c                DFSDM1_FLT0_IRQHandler
+                0x08001d3c                SAI4_IRQHandler
+                0x08001d3c                I2C2_ER_IRQHandler
+                0x08001d3c                DMA2_Stream1_IRQHandler
+                0x08001d3c                FLASH_IRQHandler
+                0x08001d3c                DMA2_Stream4_IRQHandler
+                0x08001d3c                USART1_IRQHandler
+                0x08001d3c                SPI3_IRQHandler
+                0x08001d3c                WAKEUP_PIN_IRQHandler
+                0x08001d3c                DMA1_Stream4_IRQHandler
+                0x08001d3c                I2C1_ER_IRQHandler
+                0x08001d3c                FMC_IRQHandler
+                0x08001d3c                FDCAN_CAL_IRQHandler
+                0x08001d3c                SWPMI1_IRQHandler
+                0x08001d3c                COMP1_IRQHandler
+                0x08001d3c                LPTIM1_IRQHandler
+                0x08001d3c                DCMI_PSSI_IRQHandler
+                0x08001d3c                I2C4_ER_IRQHandler
+                0x08001d3c                DMA2_Stream6_IRQHandler
+                0x08001d3c                SAI1_IRQHandler
+                0x08001d3c                RTC_Alarm_IRQHandler
+ .text.memset   0x08001d3e       0x10 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+dp/hard/libg_nano.a(libc_a-memset.o)
+                0x08001d3e                memset
+ *fill*         0x08001d4e        0x2 
  .text.__libc_init_array
-                0x08001d44       0x48 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+dp/hard/libg_nano.a(libc_a-init.o)
-                0x08001d44                __libc_init_array
+                0x08001d50       0x48 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+dp/hard/libg_nano.a(libc_a-init.o)
+                0x08001d50                __libc_init_array
  *(.glue_7)
- .glue_7        0x08001d8c        0x0 linker stubs
+ .glue_7        0x08001d98        0x0 linker stubs
  *(.glue_7t)
- .glue_7t       0x08001d8c        0x0 linker stubs
+ .glue_7t       0x08001d98        0x0 linker stubs
  *(.eh_frame)
- .eh_frame      0x08001d8c        0x0 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
+ .eh_frame      0x08001d98        0x0 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
  *(.init)
- .init          0x08001d8c        0x4 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crti.o
-                0x08001d8c                _init
- .init          0x08001d90        0x8 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtn.o
+ .init          0x08001d98        0x4 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crti.o
+                0x08001d98                _init
+ .init          0x08001d9c        0x8 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtn.o
  *(.fini)
- .fini          0x08001d98        0x4 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crti.o
-                0x08001d98                _fini
- .fini          0x08001d9c        0x8 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtn.o
-                0x08001da4                        . = ALIGN (0x4)
-                0x08001da4                        _etext = .
+ .fini          0x08001da4        0x4 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crti.o
+                0x08001da4                _fini
+ .fini          0x08001da8        0x8 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtn.o
+                0x08001db0                        . = ALIGN (0x4)
+                0x08001db0                        _etext = .
 
-.vfp11_veneer   0x08001da4        0x0
- .vfp11_veneer  0x08001da4        0x0 linker stubs
+.vfp11_veneer   0x08001db0        0x0
+ .vfp11_veneer  0x08001db0        0x0 linker stubs
 
-.v4_bx          0x08001da4        0x0
- .v4_bx         0x08001da4        0x0 linker stubs
+.v4_bx          0x08001db0        0x0
+ .v4_bx         0x08001db0        0x0 linker stubs
 
-.iplt           0x08001da4        0x0
- .iplt          0x08001da4        0x0 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
+.iplt           0x08001db0        0x0
+ .iplt          0x08001db0        0x0 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
 
-.rodata         0x08001da4       0x10
-                0x08001da4                        . = ALIGN (0x4)
+.rodata         0x08001db0       0x10
+                0x08001db0                        . = ALIGN (0x4)
  *(.rodata)
  *(.rodata*)
  .rodata.D1CorePrescTable
-                0x08001da4       0x10 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32h7xx.c.obj
-                0x08001da4                D1CorePrescTable
-                0x08001db4                        . = ALIGN (0x4)
+                0x08001db0       0x10 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32h7xx.c.obj
+                0x08001db0                D1CorePrescTable
+                0x08001dc0                        . = ALIGN (0x4)
 
-.ARM.extab      0x08001db4        0x0
-                0x08001db4                        . = ALIGN (0x4)
+.ARM.extab      0x08001dc0        0x0
+                0x08001dc0                        . = ALIGN (0x4)
  *(.ARM.extab* .gnu.linkonce.armextab.*)
-                0x08001db4                        . = ALIGN (0x4)
+                0x08001dc0                        . = ALIGN (0x4)
 
-.ARM            0x08001db4        0x0
-                0x08001db4                        . = ALIGN (0x4)
-                0x08001db4                        __exidx_start = .
+.ARM            0x08001dc0        0x0
+                0x08001dc0                        . = ALIGN (0x4)
+                0x08001dc0                        __exidx_start = .
  *(.ARM.exidx*)
-                0x08001db4                        __exidx_end = .
-                0x08001db4                        . = ALIGN (0x4)
+                0x08001dc0                        __exidx_end = .
+                0x08001dc0                        . = ALIGN (0x4)
 
-.preinit_array  0x08001db4        0x0
-                0x08001db4                        . = ALIGN (0x4)
-                0x08001db4                        PROVIDE (__preinit_array_start = .)
+.preinit_array  0x08001dc0        0x0
+                0x08001dc0                        . = ALIGN (0x4)
+                0x08001dc0                        PROVIDE (__preinit_array_start = .)
  *(.preinit_array*)
-                0x08001db4                        PROVIDE (__preinit_array_end = .)
-                0x08001db4                        . = ALIGN (0x4)
+                0x08001dc0                        PROVIDE (__preinit_array_end = .)
+                0x08001dc0                        . = ALIGN (0x4)
 
-.init_array     0x08001db4        0x4
-                0x08001db4                        . = ALIGN (0x4)
-                0x08001db4                        PROVIDE (__init_array_start = .)
+.init_array     0x08001dc0        0x4
+                0x08001dc0                        . = ALIGN (0x4)
+                0x08001dc0                        PROVIDE (__init_array_start = .)
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array*)
- .init_array    0x08001db4        0x4 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
-                0x08001db8                        PROVIDE (__init_array_end = .)
-                0x08001db8                        . = ALIGN (0x4)
+ .init_array    0x08001dc0        0x4 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
+                0x08001dc4                        PROVIDE (__init_array_end = .)
+                0x08001dc4                        . = ALIGN (0x4)
 
-.fini_array     0x08001db8        0x4
-                0x08001db8                        . = ALIGN (0x4)
+.fini_array     0x08001dc4        0x4
+                0x08001dc4                        . = ALIGN (0x4)
                 [!provide]                        PROVIDE (__fini_array_start = .)
  *(SORT_BY_NAME(.fini_array.*))
  *(.fini_array*)
- .fini_array    0x08001db8        0x4 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
+ .fini_array    0x08001dc4        0x4 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
                 [!provide]                        PROVIDE (__fini_array_end = .)
-                0x08001dbc                        . = ALIGN (0x4)
-                0x08001dbc                        _sidata = LOADADDR (.data)
+                0x08001dc8                        . = ALIGN (0x4)
+                0x08001dc8                        _sidata = LOADADDR (.data)
 
-.rel.dyn        0x08001dbc        0x0
- .rel.iplt      0x08001dbc        0x0 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
+.rel.dyn        0x08001dc8        0x0
+ .rel.iplt      0x08001dc8        0x0 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
 
-.data           0x20000000       0x10 load address 0x08001dbc
+.data           0x20000000       0x10 load address 0x08001dc8
                 0x20000000                        . = ALIGN (0x4)
                 0x20000000                        _sdata = .
  *(.data)
@@ -4298,16 +4298,16 @@ LOAD /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-no
  *fill*         0x2000000d        0x3 
 
 .tm_clone_table
-                0x20000010        0x0 load address 0x08001dcc
+                0x20000010        0x0 load address 0x08001dd8
  .tm_clone_table
                 0x20000010        0x0 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
  .tm_clone_table
                 0x20000010        0x0 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtend.o
 
-.igot.plt       0x20000010        0x0 load address 0x08001dcc
+.igot.plt       0x20000010        0x0 load address 0x08001dd8
  .igot.plt      0x20000010        0x0 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/thumb/v7e-m+dp/hard/crtbegin.o
 
-.tdata          0x20000010        0x0 load address 0x08001dcc
+.tdata          0x20000010        0x0 load address 0x08001dd8
  *(.tdata .tdata.* .gnu.linkonce.td.*)
                 0x20000010                        . = ALIGN (0x4)
                 0x20000010                        _edata = .
@@ -4324,7 +4324,7 @@ LOAD /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-no
                 [!provide]                        PROVIDE (__data_source_end = __tdata_source_end)
                 [!provide]                        PROVIDE (__data_source_size = (__data_source_end - __data_source))
 
-.tbss           0x20000010        0x0 load address 0x08001dcc
+.tbss           0x20000010        0x0 load address 0x08001dd8
                 0x20000010                        _sbss = .
                 0x20000010                        __bss_start__ = _sbss
  *(.tbss .tbss.*)
@@ -4341,7 +4341,7 @@ LOAD /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-no
                 [!provide]                        PROVIDE (__arm32_tls_tcb_offset = MAX (0x8, __tls_align))
                 [!provide]                        PROVIDE (__arm64_tls_tcb_offset = MAX (0x10, __tls_align))
 
-.bss            0x20000010       0x20 load address 0x08001dcc
+.bss            0x20000010       0x20 load address 0x08001dd8
  *(.bss)
  *(.bss*)
  .bss.completed.1
@@ -4360,7 +4360,7 @@ LOAD /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-no
                 [!provide]                        PROVIDE (__bss_size = (__bss_end - __bss_start))
 
 ._user_heap_stack
-                0x20000030      0x600 load address 0x08001dcc
+                0x20000030      0x600 load address 0x08001dd8
                 0x20000030                        . = ALIGN (0x8)
                 [!provide]                        PROVIDE (end = .)
                 0x20000030                        PROVIDE (_end = .)
@@ -4432,29 +4432,29 @@ LOAD linker stubs
  .comment       0x00000046        0x0 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
                                  0x47 (size before relaxing)
 
-.debug_info     0x00000000     0x6b76
+.debug_info     0x00000000     0x6b88
  .debug_info    0x00000000      0xbff cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32h7xx.c.obj
  .debug_info    0x00000bff     0x10b2 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c.obj
  .debug_info    0x00001cb1      0xd8c cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c.obj
  .debug_info    0x00002a3d      0xc6b cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_gpio.c.obj
  .debug_info    0x000036a8      0xddb cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr_ex.c.obj
  .debug_info    0x00004483     0x1698 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.c.obj
- .debug_info    0x00005b1b      0xa9f CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
- .debug_info    0x000065ba      0x128 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
- .debug_info    0x000066e2      0x464 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
- .debug_info    0x00006b46       0x30 CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
+ .debug_info    0x00005b1b      0xab1 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
+ .debug_info    0x000065cc      0x128 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+ .debug_info    0x000066f4      0x464 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
+ .debug_info    0x00006b58       0x30 CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
 
-.debug_abbrev   0x00000000     0x121e
+.debug_abbrev   0x00000000     0x1231
  .debug_abbrev  0x00000000      0x153 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32h7xx.c.obj
  .debug_abbrev  0x00000153      0x339 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c.obj
  .debug_abbrev  0x0000048c      0x2b1 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c.obj
  .debug_abbrev  0x0000073d      0x205 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_gpio.c.obj
  .debug_abbrev  0x00000942      0x295 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr_ex.c.obj
  .debug_abbrev  0x00000bd7      0x29e cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.c.obj
- .debug_abbrev  0x00000e75      0x237 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
- .debug_abbrev  0x000010ac       0x73 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
- .debug_abbrev  0x0000111f       0xdb CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
- .debug_abbrev  0x000011fa       0x24 CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
+ .debug_abbrev  0x00000e75      0x24a CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
+ .debug_abbrev  0x000010bf       0x73 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+ .debug_abbrev  0x00001132       0xdb CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
+ .debug_abbrev  0x0000120d       0x24 CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
 
 .debug_aranges  0x00000000      0x638
  .debug_aranges
@@ -4568,17 +4568,17 @@ LOAD linker stubs
  .debug_macro   0x0002ff08      0x291 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
  .debug_macro   0x00030199      0x287 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
 
-.debug_line     0x00000000     0x669e
+.debug_line     0x00000000     0x66a4
  .debug_line    0x00000000      0x907 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32h7xx.c.obj
  .debug_line    0x00000907      0xcdc cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c.obj
  .debug_line    0x000015e3     0x12f0 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c.obj
  .debug_line    0x000028d3      0xb69 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_gpio.c.obj
  .debug_line    0x0000343c      0xdb3 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr_ex.c.obj
  .debug_line    0x000041ef      0xd78 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.c.obj
- .debug_line    0x00004f67      0x7f6 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
- .debug_line    0x0000575d      0x7bb CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
- .debug_line    0x00005f18      0x70b CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
- .debug_line    0x00006623       0x7b CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
+ .debug_line    0x00004f67      0x7fc CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
+ .debug_line    0x00005763      0x7bb CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+ .debug_line    0x00005f1e      0x70b CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
+ .debug_line    0x00006629       0x7b CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
 
 .debug_str      0x00000000   0x137c87
  .debug_str     0x00000000   0x137c87 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32h7xx.c.obj
@@ -4602,18 +4602,18 @@ LOAD linker stubs
  .debug_str     0x00137c87        0x0 CMakeFiles/QuadsSTMFirmware.dir/startup_stm32h723xx.s.obj
                                  0x88 (size before relaxing)
 
-.debug_frame    0x00000000     0x1790
+.debug_frame    0x00000000     0x1794
  .debug_frame   0x00000000       0x68 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32h7xx.c.obj
  .debug_frame   0x00000068      0x508 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c.obj
  .debug_frame   0x00000570      0x1fc cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c.obj
  .debug_frame   0x0000076c      0x14c cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_gpio.c.obj
  .debug_frame   0x000008b8      0x540 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr_ex.c.obj
  .debug_frame   0x00000df8      0x760 cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.c.obj
- .debug_frame   0x00001558       0xb0 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
- .debug_frame   0x00001608      0x104 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
- .debug_frame   0x0000170c       0x38 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
- .debug_frame   0x00001744       0x20 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+dp/hard/libg_nano.a(libc_a-memset.o)
- .debug_frame   0x00001764       0x2c /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+dp/hard/libg_nano.a(libc_a-init.o)
+ .debug_frame   0x00001558       0xb4 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj
+ .debug_frame   0x0000160c      0x104 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj
+ .debug_frame   0x00001710       0x38 CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj
+ .debug_frame   0x00001748       0x20 /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+dp/hard/libg_nano.a(libc_a-memset.o)
+ .debug_frame   0x00001768       0x2c /Applications/ArmGNUToolchain/15.3.rel1/arm-none-eabi/bin/../lib/gcc/arm-none-eabi/15.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+dp/hard/libg_nano.a(libc_a-init.o)
 
 .debug_line_str
                 0x00000000       0x6c

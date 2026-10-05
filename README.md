@@ -65,8 +65,6 @@ Remember to always run `makestm` to update your compilations before running `fla
 
 ### Debugging
 
-(Not yet tested for MacOS!)
-
 To debug our code, we will use the `gdb` debugger. Follow the below instructions to start the debugger. If you have any questions on what to do with it, search up GDB's documentation. 
 
 Before you start debugging, ensure the following:
@@ -79,10 +77,18 @@ Terminal 1: Run `st-util`, and leave it running in the background.
 > This will start a `gdb` server on port 4242 that translates our GDB commands into ST-Link operations (allowing us to communicate with the MCU).
 
 Terminal 2: Run the following command:
+
+FOR LINUX:
 ```bash
 gdb-multiarch build/Quads_STMFirmware.elf -ex 'target extended-remote :4242' -ex 'load' -ex 'b main' -ex 'c'
 ```
-> `gdb-multiarch` allows us to use GDB for different systems. Alternatively, you can download `arm-none-eabi-gdb` (arm architecture, no OS, EABI), though this is part of `gdb-multiarch` on Ubuntu.
+FOR MAC:
+```bash
+arm-none-eabi-gdb build/QuadsSTMFirmware.elf -ex 'target extended-remote :4242' -ex 'load' -ex 'b main' -ex 'c' 
+```
+
+
+> `gdb-multiarch` and `arm-none-eabi-gdb` allows us to use GDB for different systems.
 
 This will connect to the GDB server and begin debugging at the start of your `main` function.
 
