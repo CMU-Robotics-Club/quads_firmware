@@ -75,9 +75,7 @@ alias debugstm="arm-none-eabi-gdb build/QuadsSTMFirmware.elf \
 
 ```
 
-Resource/restart your terminal. Then, in the project's root dir, run `makestm`, which should compile the project. Then with the STM connected to your computer with USB, run `flashstm`, and that's it!
-
-Remember to always run `makestm` to update your compilations before running `flashstm`.
+Resource/restart your terminal. Then, in the project's root dir, with the STM connected to your computer with USB, run `flashstm`, and that's it!
 
 ### Debugging
 
@@ -92,13 +90,8 @@ Open two terminal sessions.
 Terminal 1: Run `ocd`, and leave it running in the background.
 > This will start a `gdb` server on port 3333 that translates our GDB commands into ST-Link operations (allowing us to communicate with the MCU).
 
-Terminal 2: Run the following command for flashing:
+Terminal 2: Run the following command:
 
-```
-flashstm
-```
-
-If you want to debug as well, run:
 ```
 debugstm
 ```
