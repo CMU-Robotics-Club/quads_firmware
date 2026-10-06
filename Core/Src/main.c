@@ -251,39 +251,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-//Old semihosting code:
-// int _write(int file, char *ptr, int len)
-// {
-//   if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk)
-//   {
-//     uint32_t args[3] = { 1, (uint32_t)ptr, (uint32_t)len }; // 1 = stdout
-//     register uint32_t r0 asm("r0") = 0x05;                 // SYS_WRITE
-//     register uint32_t r1 asm("r1") = (uint32_t)args;
-//     asm volatile("bkpt 0xAB" : "+r"(r0) : "r"(r1) : "memory");
-//     return len - r0;
-//   }
-//   return len;
-// }
-
-// Old write code:
-// int _write(int file, char *ptr, int len)
-// {
-//   // Check if ITM is enabled and Port 0 is unmasked
-//   if ((ITM->TCR & ITM_TCR_ITMENA_Msk) && (ITM->TER & (1UL << 0)))
-//   {
-//     for (int i = 0; i < len; i++)
-//     {
-//       // Drop character if FIFO is full (prevents hanging when debugger disconnects)
-//       if (ITM->PORT[0].u32 != 0)
-//       {
-//         ITM->PORT[0].u8 = (uint8_t)ptr[i];
-//       }
-//     }
-//   }
-//   return len;
-// }
-
 int _write(int file, char *ptr, int len) {
     for (int i = 0; i < len; i++) {
         ITM_SendChar(*ptr++); // Calls the built-in ARM function
