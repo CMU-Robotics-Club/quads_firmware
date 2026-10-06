@@ -22,6 +22,8 @@ sudo apt install -y \
   gdb-arm-none-eabi \
   binutils-arm-none-eabi \
   gdb-multiarch
+sudo ln -s /usr/bin/gdb-multiarch /usr/local/bin/arm-none-eabi-gdb
+
 ```
 
 While that's installing, get the [STM32Cube App](https://www.st.com/en/development-tools/stm32cubemx.html) 
