@@ -57,13 +57,24 @@ Next, open up your `.zshrc` or `.bashrc` file and add the following aliases:
 ```
 alias makestm="cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/gcc-arm-none-eabi.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && cmake --build build"
 alias ocd="openocd \
-  -f interface/stlink-dap.cfg \
-  -c 'transport select dapdirect_swd' \
-  -f target/stm32h7x.cfg \
-  -c 'init' \
-  -c 'stm32h7x.swo configure -protocol uart -traceclk 64000000 -pin-freq 2000000 -output /dev/stdout' \
-  -c 'stm32h7x.swo enable' \
-  -c 'itm ports on'"
+           -f interface/stlink-dap.cfg \
+           -c 'transport select dapdirect_swd' \
+           -f target/stm32h7x.cfg \
+           -c 'init' \
+           -c 'stm32h7x.swo configure -protocol uart -traceclk 275000000 -pin-freq 2500000 -output /dev/stdout' \
+           -c 'stm32h7x.swo enable' \
+           -c 'itm ports on' \
+           | python3 -u -c '
+           import sys
+           while True:
+header = sys.stdin.buffer.read(1)
+    if not header:
+    break
+    if header[0] == 0x01:
+char = sys.stdin.buffer.read(1)
+    if char:
+sys.stdout.buffer.write(char)
+    sys.stdout.flush()'"
 alias flashstm="makestm && arm-none-eabi-gdb --batch build/QuadsSTMFirmware.elf \
   -ex 'target extended-remote :3333' \
   -ex 'load' \
@@ -72,7 +83,6 @@ alias flashstm="makestm && arm-none-eabi-gdb --batch build/QuadsSTMFirmware.elf 
 alias debugstm="arm-none-eabi-gdb build/QuadsSTMFirmware.elf \
   -ex 'target extended-remote :3333' \
   -ex 'monitor reset halt'"
-
 ```
 
 Resource/restart your terminal. Then, in the project's root dir, with the STM connected to your computer with USB, run `flashstm`, and that's it!
