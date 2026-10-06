@@ -65,17 +65,7 @@ alias ocd="openocd \
   -c 'stm32h7x.swo configure -protocol uart -traceclk 275000000 -pin-freq 2500000 -output /dev/stdout' \
   -c 'stm32h7x.swo enable' \
   -c 'itm ports on' \
-  | python3 -u -c '
-import sys
-while True:
-    header = sys.stdin.buffer.read(1)
-    if not header:
-        break
-    if header[0] == 0x01:
-        char = sys.stdin.buffer.read(1)
-        if char:
-            sys.stdout.buffer.write(char)
-            sys.stdout.flush()'"
+  | python3 -u -c 'import sys; r=sys.stdin.buffer.read; w=sys.stdout.buffer.write; f=sys.stdout.flush; (lambda: [w(r(1)) or f() for h in iter(lambda: r(1), b\"\") if h == b\"\x01\"])()'"
 alias flashstm="makestm && arm-none-eabi-gdb --batch build/QuadsSTMFirmware.elf \
   -ex 'target extended-remote :3333' \
   -ex 'load' \
