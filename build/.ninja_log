@@ -5,7 +5,7 @@
 8	510	1791249319466056127	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c.obj	c882b35581971575
 5	503	1791249319462793270	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Core/Src/system_stm32h7xx.c.obj	c6a47b1271ff9972
 4	463	1791249319461458628	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_it.c.obj	2a3e31d0f8b1213b
-3	287	1791251838603971560	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj	e0cc71b51b199998
+5	322	1791255903161450725	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj	e0cc71b51b199998
 8	521	1791249319465469680	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c.obj	a49573c05c3065a6
 4	491	1791249319461947619	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_msp.c.obj	3d1cb94d478bff27
 5	609	1791249385791355207	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash.c.obj	88aa5f6271d043d7
@@ -24,7 +24,7 @@
 6	613	1791249319463448800	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim.c.obj	f01a12224b7d8581
 7	526	1791249319465108936	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_tim_ex.c.obj	2d2e30ae1eceacc1
 568	1119	1791249386354140966	cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir/__/__/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c.c.obj	be495544fe3645d2
-287	434	1791251838887850824	QuadsSTMFirmware.elf	706b3c2c11b62375
+322	489	1791255903478758124	QuadsSTMFirmware.elf	706b3c2c11b62375
 5	466	1791249319462436610	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/stm32h7xx_hal_timebase_tim.c.obj	4ab4e2ac8200020f
 3	481	1791249319461135717	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/freertos.c.obj	4eb128abb44c33b7
 606	780	1791249386392579892	cmake/stm32cubemx/CMakeFiles/FreeRTOS.dir/__/__/Middlewares/Third_Party/FreeRTOS/Source/portable/Common/mpu_wrappers_v2.c.obj	7f5e1c8b061957cd
@@ -38,5 +38,3 @@
 923	1022	1791249386709473542	cmake/stm32cubemx/CMakeFiles/FreeRTOS.dir/__/__/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c.obj	c9675c01f4837730
 780	1014	1791249386566902970	cmake/stm32cubemx/CMakeFiles/FreeRTOS.dir/__/__/Middlewares/Third_Party/FreeRTOS/Source/tasks.c.obj	c8287d710581c691
 813	1152	1791249386599179091	cmake/stm32cubemx/CMakeFiles/FreeRTOS.dir/__/__/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.c.obj	3381b8b5b530f6ba
-4	309	1791251965259850676	CMakeFiles/QuadsSTMFirmware.dir/Core/Src/main.c.obj	e0cc71b51b199998
-309	456	1791251965564545023	QuadsSTMFirmware.elf	706b3c2c11b62375

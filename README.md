@@ -56,7 +56,23 @@ Next, open up your `.zshrc` or `.bashrc` file and add the following aliases:
 
 ```
 alias makestm="cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/gcc-arm-none-eabi.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && cmake --build build"
-alias flashstm="arm-none-eabi-objcopy -O binary build/QuadsSTMFirmware.elf build/QuadsSTMFirmware.bin && st-flash --reset write build/QuadsSTMFirmware.bin 0x08000000"
+alias ocd="openocd \
+  -f interface/stlink-dap.cfg \
+  -c 'transport select dapdirect_swd' \
+  -f target/stm32h7x.cfg \
+  -c 'init' \
+  -c 'stm32h7x.swo configure -protocol uart -traceclk 64000000 -pin-freq 2000000 -output /dev/stdout' \
+  -c 'stm32h7x.swo enable' \
+  -c 'itm ports on'"
+alias flashstm="makestm && arm-none-eabi-gdb --batch build/QuadsSTMFirmware.elf \
+  -ex 'target extended-remote :3333' \
+  -ex 'load' \
+  -ex 'monitor reset run' \
+  -ex 'quit'"
+alias debugstm="arm-none-eabi-gdb build/QuadsSTMFirmware.elf \
+  -ex 'target extended-remote :3333' \
+  -ex 'monitor reset halt'"
+
 ```
 
 Resource/restart your terminal. Then, in the project's root dir, run `makestm`, which should compile the project. Then with the STM connected to your computer with USB, run `flashstm`, and that's it!
@@ -73,20 +89,19 @@ Before you start debugging, ensure the following:
 
 Open two terminal sessions.
 
-Terminal 1: Run `st-util`, and leave it running in the background.
-> This will start a `gdb` server on port 4242 that translates our GDB commands into ST-Link operations (allowing us to communicate with the MCU).
+Terminal 1: Run `ocd`, and leave it running in the background.
+> This will start a `gdb` server on port 3333 that translates our GDB commands into ST-Link operations (allowing us to communicate with the MCU).
 
-Terminal 2: Run the following command:
+Terminal 2: Run the following command for flashing:
 
-FOR LINUX:
-```bash
-gdb-multiarch build/Quads_STMFirmware.elf -ex 'target extended-remote :4242' -ex 'load' -ex 'b main' -ex 'c'
 ```
-FOR MAC:
-```bash
-arm-none-eabi-gdb build/QuadsSTMFirmware.elf -ex 'target extended-remote :4242' -ex 'load' -ex 'b main' -ex 'c' 
+flashstm
 ```
 
+If you want to debug as well, run:
+```
+debugstm
+```
 
 > `gdb-multiarch` and `arm-none-eabi-gdb` allows us to use GDB for different systems.
 
