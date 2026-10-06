@@ -1,8 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/Users/advan/Documents/QuadsSTMFirmware/build/cmake_install.cmake",
-		"/Users/advan/Documents/QuadsSTMFirmware/build/cmake/stm32cubemx/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
