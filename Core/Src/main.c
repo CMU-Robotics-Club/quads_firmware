@@ -47,7 +47,7 @@
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
+  .stack_size = 256 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
@@ -215,6 +215,7 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
 
@@ -234,6 +235,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+//Old semihosting code:
 // int _write(int file, char *ptr, int len)
 // {
 //   if (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk)
@@ -247,21 +250,29 @@ static void MX_GPIO_Init(void)
 //   return len;
 // }
 
-int _write(int file, char *ptr, int len)
-{
-  // Check if ITM is enabled and Port 0 is unmasked
-  if ((ITM->TCR & ITM_TCR_ITMENA_Msk) && (ITM->TER & (1UL << 0)))
-  {
-    for (int i = 0; i < len; i++)
-    {
-      // Drop character if FIFO is full (prevents hanging when debugger disconnects)
-      if (ITM->PORT[0].u32 != 0)
-      {
-        ITM->PORT[0].u8 = (uint8_t)ptr[i];
-      }
+// Old write code:
+// int _write(int file, char *ptr, int len)
+// {
+//   // Check if ITM is enabled and Port 0 is unmasked
+//   if ((ITM->TCR & ITM_TCR_ITMENA_Msk) && (ITM->TER & (1UL << 0)))
+//   {
+//     for (int i = 0; i < len; i++)
+//     {
+//       // Drop character if FIFO is full (prevents hanging when debugger disconnects)
+//       if (ITM->PORT[0].u32 != 0)
+//       {
+//         ITM->PORT[0].u8 = (uint8_t)ptr[i];
+//       }
+//     }
+//   }
+//   return len;
+// }
+
+int _write(int file, char *ptr, int len) {
+    for (int i = 0; i < len; i++) {
+        ITM_SendChar(*ptr++); // Calls the built-in ARM function
     }
-  }
-  return len;
+    return len;
 }
 /* USER CODE END 4 */
 
