@@ -77,7 +77,9 @@ alias debugstm="arm-none-eabi-gdb build/QuadsSTMFirmware.elf \
 
 ```
 
-Resource/restart your terminal. Then, in the project's root dir, with the STM connected to your computer with USB, run `flashstm`, and that's it!
+Resource/restart your terminal. Have 2 terminals open. In terminal 1, with the STM connected to your computer with USB, in the project's root dir, run `ocd`. This is where printf statements will be outputted.
+
+Then, run `flashstm` in terminal 2, and that's it!
 
 ### Debugging
 
@@ -87,16 +89,9 @@ Before you start debugging, ensure the following:
 1. You have successfully flashed your code onto the MCU using `flashstm`
 2. Your device is currently connected to the board
 
-Open two terminal sessions.
+Keep terminal 1 running ocd.
 
-Terminal 1: Run `ocd`, and leave it running in the background.
-> This will start a `gdb` server on port 3333 that translates our GDB commands into ST-Link operations (allowing us to communicate with the MCU).
-
-Terminal 2: Run the following command:
-
-```
-debugstm
-```
+Terminal 2: run `debugstm`
 
 > `gdb-multiarch` and `arm-none-eabi-gdb` allows us to use GDB for different systems.
 
