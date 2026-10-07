@@ -57,6 +57,7 @@ ln -s build/compile_commands.json .
 Next, open up your `.zshrc` or `.bashrc` file and add the following aliases:
 
 ```
+alias makestm="cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/gcc-arm-none-eabi.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && cmake --build build"
 alias ocd="openocd \
   -f interface/stlink-dap.cfg \
   -c 'transport select dapdirect_swd' \

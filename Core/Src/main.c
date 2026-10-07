@@ -278,7 +278,7 @@ void StartDefaultTask(void *argument)
     osDelay(200);
     a++;
     start_cycles = DWT->CYCCNT;
-    printf("HERE!\r\n");
+    printf("HERE!!!!!!!!!!!!!!!!\r\n");
     elapsed_cycles = DWT->CYCCNT - start_cycles;
     time_us = (float)elapsed_cycles / (SystemCoreClock / 1000000.0f);
     int whole = (int)time_us;
