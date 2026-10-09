@@ -56,7 +56,8 @@ ENTRY(Reset_Handler)
 MEMORY
 {
 DTCMRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 128K
-RAM_D1 (xrw)      : ORIGIN = 0x24000000, LENGTH = 320K
+RAM_RTT (rw)      : ORIGIN = 0x24000000, LENGTH = 8K
+RAM_D1 (xrw)      : ORIGIN = 0x24002000, LENGTH = 312K
 RAM_D2 (xrw)      : ORIGIN = 0x30000000, LENGTH = 32K
 RAM_D3 (xrw)      : ORIGIN = 0x38000000, LENGTH = 16K
 ITCMRAM (xrw)      : ORIGIN = 0x00000000, LENGTH = 64K
@@ -154,6 +155,18 @@ SECTIONS
 
   /* used by the startup to initialize data */
   _sidata = LOADADDR(.data);
+
+  /* Explicitly cleared by rtt_log_init(), not by the startup .bss loop. */
+  .rtt (NOLOAD) :
+  {
+    . = ALIGN(32);
+    __rtt_start__ = .;
+    KEEP(*(.rtt .rtt.*))
+    . = ALIGN(32);
+    __rtt_end__ = .;
+  } >RAM_RTT
+  ASSERT(SIZEOF(.rtt) <= LENGTH(RAM_RTT), "RTT exceeds reserved SRAM")
+  ASSERT(ADDR(.rtt) == ORIGIN(RAM_RTT), "RTT address differs from MPU/OpenOCD")
 
   /* Initialized data sections goes into RAM, load LMA copy after code */
   .data :
