@@ -1,3 +1,6 @@
 .DS_STORE
 
 build
+/.vscode
+/.settings
+.clangd
