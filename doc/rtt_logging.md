@@ -21,19 +21,50 @@ initialize it again.
 | Maximum message length | 256 bytes, including any CR/LF added by the caller, excluding NUL |
 | Submission | One immediate `_write()` per call; no waiting for a newline |
 | Newlines | Not added automatically; `\r\n` is recommended for terminal output |
-| Full RTT buffer | Drop the entire write without waiting or retrying |
+| Full RTT buffer | Drop the entire write without waiting or retrying; return `-1` with `errno = EAGAIN` |
 | Oversized message | Do not submit truncated text; return `-1` with `errno = EOVERFLOW` |
-| Return value | Formatted length, even if RTT drops the write; output is best effort |
-| Other errors | Return `-1` for a NULL format, ISR context, or formatting failure |
+| Return value | Formatted length when accepted into the RTT ring; `-1` on failure. Acceptance does not guarantee PC delivery |
+| Other errors | Return `-1` for a NULL format, formatting failure, or uninitialized backend (`EAGAIN`) |
 
-Call it only from normal task or initialization code, never from an ISR. The local
-formatting buffer uses 257 bytes of stack. Allow additional space for the libc
+Task, initialization, and normal maskable ISR calls are not rejected based on
+context. However, libc formatter concurrency between tasks and ISRs has not been
+validated. The local formatting buffer uses 257 bytes of stack. Allow additional space for the libc
 formatter, call chain, and exception frames; the default task currently has a
 2 KB stack. A bounded output buffer does not impose a strict upper bound on
 formatting execution time. RTT producer synchronization is handled, but libc
 reentrancy and allocator locking still require consideration for actual use by
 multiple tasks. The current nano libc configuration does not enable additional
 float printf support; examples and tests use integer and string formats.
+
+### Raw output from ISRs
+
+The `_write()` backend accepts preformatted bytes from tasks and normal maskable
+ISRs. It uses the same short PRIMASK critical section, 256-byte limit, and
+whole-write drop policy in both contexts. Initialize RTT before enabling any
+interrupt that logs. Do not use this backend from NMI or HardFault handlers:
+PRIMASK does not prevent them from interrupting an active producer.
+
+```c
+#include "rtt_log.h"
+
+/* Inside a normal peripheral interrupt handler: */
+static char message[] = "CAN message received\r\n";
+_write(1, message, (int)(sizeof(message) - 1U));
+```
+
+`fast_printf()` also allows maskable ISR calls; its formatting buffer is local to
+each invocation. This isolates message buffers but does not establish libc
+formatter reentrancy or allocator safety when an ISR interrupts formatting in a
+task. The current tests use mocked ISR context and do not validate target libc
+concurrency. Check the actual formats, libc behavior, handler stack space, and
+execution time before using formatting in interrupt handlers. NMI and HardFault
+remain unsupported by the backend.
+
+Standard `printf()` should remain in task context because it also uses shared
+stdout stream state. For frequent CAN or IMU data, enqueue compact events and
+format them in a task, or use raw `_write()` for preformatted text. Raw ISR writes
+do not wait for host delivery, but their bounded copy still adds execution time
+and briefly masks interrupts.
 
 ### Receiving output on the PC
 
@@ -98,9 +129,17 @@ submissions; RTT itself carries a byte stream without message framing.
 
 `rtt_log_get_stats(&stats)` reports valid nonempty write calls, accepted bytes,
 dropped writes and bytes, oversized writes, writes before initialization, and ISR
-writes. Counters are `uint32_t` and wrap naturally. Messages rejected by
+write attempts (including accepted and dropped writes). Counters are `uint32_t` and wrap naturally. Messages rejected by
 `fast_printf` for formatting overflow never reach `_write`, so they are not
 included in backend counters.
+
+The backend returns `len` only when all requested bytes enter the ring. A valid
+empty write returns zero. Rejected writes return `-1`: `EAGAIN` for uninitialized
+RTT or insufficient buffer space, `EOVERFLOW` for more than 256 bytes, `EBADF` for
+an unsupported descriptor, and `EINVAL` for invalid length/pointer arguments.
+No backend retries are performed. `fast_printf()` propagates backend failure.
+In ISR context, prefer the return value and counters; libc `errno` storage may be
+shared with the interrupted task and does not provide ISR-specific error state.
 
 ### Memory layout and standard printf
 
@@ -117,7 +156,12 @@ Standard `printf()` remains available. stdout has a static 256-byte line buffer
 and submits on newline, buffer full, or `fflush(stdout)`; stderr is unbuffered.
 One printf call can produce several writes or combine with previously buffered
 text. Neither the entire printf call nor a complete line is guaranteed atomic.
-Unflushed stdout text can be lost on reset.
+Unflushed stdout text can be lost on reset. A buffered `printf()` can return
+success before `_write()` runs. A backend rejection can make `printf()` or
+`fflush(stdout)` fail and set the stream error indicator; inspect return values
+and `ferror(stdout)`, and use `clearerr(stdout)` when handling the error before
+further output. It does not recover a rejected message. For immediate acceptance
+feedback, use `fast_printf()` instead of buffered stdout.
 
 The RTT MPU configuration and initialization calls are inside `main.c` USER CODE
 blocks. The default task body is inside `freertos.c`'s
@@ -241,8 +285,8 @@ Register the profiling task before building to obtain the sweep above. Normal
 firmware does not automatically run profiling. Each build has its own ELF. The
 original `flashstm` loads `build/QuadsSTMFirmware.elf` and does not automatically
 select Release. Host tests cover backend bounds, wrap-around, full-buffer
-rejection, interrupt-mask restoration, formatter single-write behavior and
-overflow, and the viewer's Tcl framing and initialization checks. They do not
+rejection, interrupt-mask restoration, formatter single-write behavior, overflow, backend-error propagation and recovery,
+raw ISR acceptance/drop/wrap behavior, formatted ISR acceptance/rejection, and the viewer's Tcl framing and initialization checks. They do not
 simulate actual cycle timing.
 
 During board testing, keep the viewer receiving, check accepted/rejected counters,

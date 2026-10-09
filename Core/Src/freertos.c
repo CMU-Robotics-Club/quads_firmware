@@ -66,11 +66,10 @@ void StartDefaultTask(void *argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
-@name : MX_FREERTOS_Init
-@brief : FreeRTOS initialization
-@param : None
-@retval : None
-*/
+  * @brief  FreeRTOS initialization
+  * @param  None
+  * @retval None
+  */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
 
@@ -108,10 +107,10 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
-@name : StartDefaultTask
-@brief : Toggle the LED and measure one fast_printf call every 200 ticks.
-@param : argument - Unused CMSIS-RTOS2 task argument.
-*/
+ * @name : StartDefaultTask
+ * @brief : Toggle the LED and measure one fast_printf call every 200 ticks.
+ * @param : argument - Unused CMSIS-RTOS2 task argument.
+ */
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
@@ -138,10 +137,10 @@ void StartDefaultTask(void *argument)
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 /**
-@name : DWT_Init
-@brief : Enable cycle timing for the demo; RTT output does not need DWT.
-@note : Leave CYCCNT unchanged so other measurements can share the counter.
-*/
+ * @name : DWT_Init
+ * @brief : Enable cycle timing for the demo; RTT output does not need DWT.
+ * @note : Leave CYCCNT unchanged so other measurements can share the counter.
+ */
 static void DWT_Init(void)
 {
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;

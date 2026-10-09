@@ -15,9 +15,9 @@ static int initialized;
 static char stdout_buffer[RTT_LOG_MAX_WRITE];
 
 /**
-@name : lock
-@brief : Save PRIMASK and enter the short atomic RTT critical section.
-*/
+ * @name : lock
+ * @brief : Save PRIMASK and enter the short atomic RTT critical section.
+ */
 static uint32_t lock(void)
 {
   uint32_t saved = __get_PRIMASK();
@@ -27,9 +27,9 @@ static uint32_t lock(void)
 }
 
 /**
-@name : unlock
-@brief : Restore the interrupt mask saved by lock.
-*/
+ * @name : unlock
+ * @brief : Restore the interrupt mask saved by lock.
+ */
 static void unlock(uint32_t saved)
 {
   __DMB();
@@ -37,9 +37,9 @@ static void unlock(uint32_t saved)
 }
 
 /**
-@name : rtt_log_init
-@brief : Initialize RTT and libc stream buffers once, before tasks start.
-*/
+ * @name : rtt_log_init
+ * @brief : Initialize RTT and libc stream buffers once, before tasks start.
+ */
 void rtt_log_init(void)
 {
   /* This NOLOAD section is not covered by the startup .bss loop. */
@@ -52,9 +52,10 @@ void rtt_log_init(void)
 }
 
 /**
-@name : _write
-@brief : Submit one atomic best-effort write; drop whole writes when RTT is full.
-*/
+ * @name : _write
+ * @brief : Submit one atomic best-effort write from task or maskable ISR context.
+ * @note : Do not use from NMI or HardFault; PRIMASK cannot serialize those handlers.
+ */
 int _write(int file, char *ptr, int len)
 {
   if (file != 1 && file != 2) {
@@ -69,13 +70,14 @@ int _write(int file, char *ptr, int len)
 
   uint32_t saved = lock();
   stats.write_calls++;
+  if (__get_IPSR() != 0U) stats.isr_writes++;
   unsigned accepted = 0;
+  int write_error = EAGAIN;
   if (!initialized) {
     stats.uninitialized_writes++;
-  } else if (__get_IPSR() != 0U) {
-    stats.isr_writes++;
   } else if ((unsigned)len > RTT_LOG_MAX_WRITE) {
     stats.oversize_writes++;
+    write_error = EOVERFLOW;
   } else {
     /* NO_BLOCK_SKIP accepts all bytes or none, including on wrap-around.
        No other application producer may write channel 0 directly. */
@@ -88,25 +90,27 @@ int _write(int file, char *ptr, int len)
     stats.dropped_bytes += (uint32_t)len;
   }
   unlock(saved);
-  /* Deliberately consume dropped output; never ask libc to retry it. */
+  if (accepted != (unsigned)len) {
+    errno = write_error;
+    return -1;
+  }
+  /* Success means accepted into MCU RAM, not delivered to the PC. */
   return len;
 }
 
 /**
-@name : fast_printf
-@brief : Format up to 256 bytes locally and submit one atomic RTT write.
-*/
+ * @name : fast_printf
+ * @brief : Format up to 256 bytes locally and submit one atomic RTT write.
+ * @note : ISR callers must account for libc reentrancy, stack use, and latency.
+ * NMI and HardFault are unsupported, as for the raw backend.
+ */
 int fast_printf(const char *format, ...)
 {
   if (format == NULL) {
     errno = EINVAL;
     return -1;
   }
-  if (__get_IPSR() != 0U) {
-    errno = EPERM;
-    return -1;
-  }
-  /* Stack-local storage prevents different tasks sharing a formatting buffer.
+  /* Stack-local storage prevents callers sharing a formatting buffer.
      NUL is not submitted; a full 256-byte message therefore fits. */
   char buffer[RTT_LOG_MAX_WRITE + 1U];
   va_list arguments;
@@ -122,9 +126,9 @@ int fast_printf(const char *format, ...)
 }
 
 /**
-@name : rtt_log_get_stats
-@brief : Copy the logging counters under the same interrupt lock.
-*/
+ * @name : rtt_log_get_stats
+ * @brief : Copy the logging counters under the same interrupt lock.
+ */
 void rtt_log_get_stats(rtt_log_stats_t *out)
 {
   if (out == NULL) return;
@@ -149,9 +153,9 @@ typedef struct {
 #define PRINT_BENCHMARK_DELAY_TICKS 20U
 
 /**
-@name : ProfileDWTInit
-@brief : Enable the cycle counter without resetting shared timing state.
-*/
+ * @name : ProfileDWTInit
+ * @brief : Enable the cycle counter without resetting shared timing state.
+ */
 static void ProfileDWTInit(void)
 {
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
@@ -161,9 +165,9 @@ static void ProfileDWTInit(void)
 }
 
 /**
-@name : MeasurePrintBackend
-@brief : Measure 32 calls with identical output, excluding message construction.
-*/
+ * @name : MeasurePrintBackend
+ * @brief : Measure 32 calls with identical output, excluding message construction.
+ */
 static void MeasurePrintBackend(int backend, uint32_t length, PrintBenchmark *result)
 {
   static char message[RTT_LOG_MAX_WRITE + 1U];
@@ -199,7 +203,7 @@ static void MeasurePrintBackend(int backend, uint32_t length, PrintBenchmark *re
     result->write_calls += after.write_calls - before.write_calls;
     result->dropped_writes += after.dropped_writes - before.dropped_writes;
     result->dropped_bytes += after.dropped_bytes - before.dropped_bytes;
-    /* _write returns len even when dropping: use counters, not return alone.
+    /* Check counters as well as returns: stdout may buffer or split writes.
        This assumes this benchmark task is the only output producer. */
     if (returned != (int)length ||
         after.dropped_writes != before.dropped_writes ||
@@ -215,9 +219,9 @@ static void MeasurePrintBackend(int backend, uint32_t length, PrintBenchmark *re
 }
 
 /**
-@name : ReportPrintBenchmark
-@brief : Report accepted-sample timings and drop counters outside timing.
-*/
+ * @name : ReportPrintBenchmark
+ * @brief : Report accepted-sample timings and drop counters outside timing.
+ */
 static void ReportPrintBenchmark(const char *name, const PrintBenchmark *result)
 {
   /* Convert outside the timed region; no float printf support needed.
@@ -246,9 +250,9 @@ static void ReportPrintBenchmark(const char *name, const PrintBenchmark *result)
 }
 
 /**
-@name : rtt_log_profile_once
-@brief : Compare three output backends across five message lengths in an RTOS task.
-*/
+ * @name : rtt_log_profile_once
+ * @brief : Compare three output backends across five message lengths in an RTOS task.
+ */
 void rtt_log_profile_once(void)
 {
   static const uint32_t lengths[] = {8U, 22U, 64U, 128U, RTT_LOG_MAX_WRITE};
@@ -269,9 +273,9 @@ void rtt_log_profile_once(void)
 }
 
 /**
-@name : rtt_log_profile_task
-@brief : Run repeated profiling sweeps as an optional CMSIS-RTOS2 test task.
-*/
+ * @name : rtt_log_profile_task
+ * @brief : Run repeated profiling sweeps as an optional CMSIS-RTOS2 test task.
+ */
 void rtt_log_profile_task(void *argument)
 {
   (void)argument;
