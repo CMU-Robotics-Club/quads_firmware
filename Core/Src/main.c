@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "mcp2518fd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -364,6 +365,7 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
   DWT_Init();
+  mcp_loopback_test(); /* MCP2518FD bring-up: runs once, prints results over SWO */
   /* Infinite loop */
   int a = 0;
   for(;;)
