@@ -120,7 +120,7 @@ void StartDefaultTask(void *argument)
   for (;;)
   {
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-    osDelay(200);
+    osDelay(300);
 
     uint32_t start_cycles = DWT->CYCCNT;
     fast_printf("HERE!!!2!!!!!!!!\r\n");
