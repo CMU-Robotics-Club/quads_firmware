@@ -1,3 +1,6 @@
+# Message from human: I have no idea why this ai readme is so long i didn't bother to read this
+# Also there are outdated aliases in this
+
 # RTT logging and fast_printf
 
 ## Usage guide

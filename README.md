@@ -28,8 +28,6 @@ sudo ln -s /usr/bin/gdb-multiarch /usr/local/bin/arm-none-eabi-gdb
 
 While that's installing, get the [STM32Cube App](https://www.st.com/en/development-tools/stm32cubemx.html) 
 
-#### For an existing project (DO THIS ONE)
-
 Run the following:
 
 ```
@@ -38,12 +36,6 @@ git clone https://github.com/CMU-Robotics-Club/quads_firmware .
 ```
 
 Next, open up your project by selecting your QuadsSTMFirmware folder in the STM32Cube App.
-
-#### For a new project: 
-
-Use QuadsSTMFirmware for the project name, and select STM32H723ZGT6 as the MCU (SUBJECT TO CHANGE). Select your home directory's Documents folder for saving for compatibility with the aliases we'll make later.
-
-Once the project has been created, go to Project Manager -> Project -> Toolchain/IDE Select in the dropdown CMake.
 
 ### Compiling and more setup
 
@@ -58,7 +50,7 @@ Next, open up your `.zshrc` or `.bashrc` file and add the following aliases:
 
 ```
 alias makestm="cmake -B build -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/gcc-arm-none-eabi.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON && cmake --build build"
-alias quads-ocd="openocd -f scripts/openocd.cfg"
+alias ocd="openocd -f scripts/openocd.cfg"
 alias flashstm="makestm && arm-none-eabi-gdb --batch build/QuadsSTMFirmware.elf \
   -ex 'target extended-remote :3333' \
   -ex 'load' \
@@ -67,32 +59,14 @@ alias flashstm="makestm && arm-none-eabi-gdb --batch build/QuadsSTMFirmware.elf 
 alias debugstm="arm-none-eabi-gdb build/QuadsSTMFirmware.elf \
   -ex 'target extended-remote :3333' \
   -ex 'monitor reset halt'"
-
+alias logrtt="python3 scripts/rtt_terminal.py"
 ```
 
-The legacy SWO `ocd` alias is retained below for existing setups. It is **not
-guaranteed to work with the current RTT workflow**; its SWO commands may fail
-with some OpenOCD/target configurations. Use `quads-ocd` for the documented setup.
-If the legacy alias starts OpenOCD successfully with Tcl port 6666 available,
-`rtt_terminal.py` can still start and read RTT independently of the SWO filter.
+Resource/restart your terminal. Have 2 terminals open. In terminal 1, with the STM connected through the ST-Link USB connector, in the project's root dir, run `ocd`.
 
-```sh
-alias ocd="openocd \
-  -f interface/stlink-dap.cfg \
-  -c 'transport select dapdirect_swd' \
-  -f target/stm32h7x.cfg \
-  -c 'init' \
-  -c 'stm32h7x.swo configure -protocol uart -traceclk 275000000 -pin-freq 2500000 -output /dev/stdout' \
-  -c 'stm32h7x.swo enable' \
-  -c 'itm ports on' \
-  | python3 -u -c 'import sys; r=sys.stdin.buffer.read; w=sys.stdout.buffer.write; f=sys.stdout.flush; (lambda: [w(r(1)) or f() for h in iter(lambda: r(1), b\"\") if h == b\"\x01\"])()'"
-```
+Then, run `flashstm` in terminal 2. To view logging output, run `logrtt` in that terminal after flashing. Restart the viewer after reset/reflash.
 
-Resource/restart your terminal. Have 2 terminals open. In terminal 1, with the STM connected through the ST-Link USB connector, in the project's root dir, run `quads-ocd`. Existing `ocd` aliases can stay unchanged; this workflow uses `quads-ocd` instead.
-
-Then, run `flashstm` in terminal 2. To view logging output, run `python3 scripts/rtt_terminal.py` in that terminal after flashing. Restart the viewer after reset/reflash.
-
-See the [RTT and fast_printf guide](doc/rtt_logging.md) for usage, design, profiling, and measured comparisons.
+See the [RTT and fast_printf guide](doc/rtt_logging.md) [See the wall of text at your own risk] for usage, design, profiling, and measured comparisons.
 
 ### Debugging
 
@@ -121,3 +95,11 @@ Basic GDB usage:
   - When printing, you may need to type "up" to go up the call stack to go to the main where your variables are defined and in-scope
 - Track variable: `display <variable name>`
   - Prints the value of a variable each time you hit a breakpoint or you step over to another line
+
+## Management stuff (ignore this section)
+
+#### To make a new project: 
+
+Use QuadsSTMFirmware for the project name, and select STM32H723ZGT6 as the MCU. Select your home directory's Documents folder for saving for compatibility with the aliases we'll make later.
+
+Once the project has been created, go to Project Manager -> Project -> Toolchain/IDE Select in the dropdown CMake.
