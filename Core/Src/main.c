@@ -20,6 +20,7 @@
 #include "main.h"
 #include "FreeRTOS.h"
 #include "cmsis_os2.h"
+#include "fdcan.h"
 #include "spi.h"
 #include "gpio.h"
 
@@ -118,6 +119,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SPI1_Init();
+  MX_FDCAN1_Init();
+  MX_FDCAN2_Init();
+  MX_FDCAN3_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -212,8 +216,17 @@ void PeriphCommonClock_Config(void)
 
   /** Initializes the peripherals clock
   */
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CKPER;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FDCAN|RCC_PERIPHCLK_CKPER;
+  PeriphClkInitStruct.PLL2.PLL2M = 4;
+  PeriphClkInitStruct.PLL2.PLL2N = 160;
+  PeriphClkInitStruct.PLL2.PLL2P = 2;
+  PeriphClkInitStruct.PLL2.PLL2Q = 4;
+  PeriphClkInitStruct.PLL2.PLL2R = 2;
+  PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_1;
+  PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
+  PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
   PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSI;
+  PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL2;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
