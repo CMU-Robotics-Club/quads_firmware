@@ -146,11 +146,12 @@ mcp_status_t mcp_init(void)
     TRY(mcp_read(REG_CON_B2, &con_b2, 1));
     if (con_b2 != CON_B2_AFTER_RESET) return MCP_ERR_BAD_ID;
 
-    /* 1 Mbps, 80% sample point. BRP=1, TSEG1, TSEG2, SJW stored as value-1. */
+    /* 1 Mbps, sample point as close to ODrive's 87.5% as the clock allows.
+     * BRP=1, TSEG1, TSEG2, SJW stored as value-1; SJW = TSEG2. */
 #if MCP_XTAL_40MHZ
-    TRY(write_u32(REG_NBTCFG, 0x001E0707)); /* 40 TQ: 1 + 31 + 8 */
+    TRY(write_u32(REG_NBTCFG, 0x00210404)); /* 40 TQ: 1 + 34 + 5 = 87.5% */
 #else
-    TRY(write_u32(REG_NBTCFG, 0x000E0303)); /* 20 TQ: 1 + 15 + 4 */
+    TRY(write_u32(REG_NBTCFG, 0x000F0202)); /* 20 TQ: 1 + 16 + 3 = 85% (87.5% not reachable) */
 #endif
 
     /* PLSIZE = 000 (8 B), FSIZE = 7 (8 msgs), TXAT = 11 (reset value). Byte 0 bit 7 = TXEN. */

@@ -222,7 +222,7 @@ level
 **The real reason for 87.5% here: match the ODrive.** ODrive's timing is fixed at 8 TQ = 1 + 6 + 1, i.e. 87.5%, not configurable. Every node resyncs on the same edges; if sample points differ a lot (e.g. 80% vs 87.5%), an edge with jitter can be read as 0 by one node and 1 by another. Short cables may hide this; longer cables or more nodes show stray error frames.
 (CiA publishes recommended sample points per bit rate; not checked here, so not cited.)
 
-The MCP2518FD is still at 80% (`0x001E0707`). Change it to `0x00210404` before the real bus.
+The MCP2518FD driver was changed from 80% (`0x001E0707`) to 87.5% (`0x00210404`, 40 MHz clock) to match; 20 MHz can only reach 85% (`0x000F0202`). Not yet tested on a chip.
 
 **SJW = the largest timing correction per edge.** It is clock alignment, not error correction.
 
