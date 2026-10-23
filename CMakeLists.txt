@@ -47,6 +47,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/rtt_log.c
     Middlewares/Third_Party/SEGGER_RTT/SEGGER_RTT.c
+    Core/Src/mcp2518fd.c
+    Core/Src/fdcan_test.c
 )
 
 # Add include paths
