@@ -2,7 +2,7 @@
  * MCP2518FD SPI-CAN driver (bring-up version).
  *
  * Register addresses and values: DS20006027B (datasheet), DS20005678E (reference manual).
- * See MCP2518FD_DRIVER_NOTES.md for the derivation of each value.
+ * Why the bit timing matches ODrive (87.5% sample point): doc/FDCAN_NOTES.md, "Bit timing".
  */
 #include "mcp2518fd.h"
 
