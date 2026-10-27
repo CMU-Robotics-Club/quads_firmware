@@ -49,6 +49,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Middlewares/Third_Party/SEGGER_RTT/SEGGER_RTT.c
     Core/Src/mcp2518fd.c
     Core/Src/fdcan_interface.c
+    Core/Src/odrive_can.c
 )
 
 # Add include paths
