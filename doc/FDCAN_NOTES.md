@@ -387,11 +387,23 @@ Runs once from `StartDefaultTask`, results over RTT. Per instance:
 
 Pure C, no HAL, so `tests/run_host_tests.py` compiles and runs it on the host (`tests/test_odrive_can.c`).
 
+A classic CAN frame is an 11-bit ID plus 0-8 data bytes. ODrive splits the ID into two fields and uses the data bytes as the message body:
+
 ```
-11-bit ID:  [ node_id : 6 bits ][ cmd_id : 5 bits ]      id = node_id << 5 | cmd_id
-            hip  node 1 heartbeat → 0x021      knee node 2 heartbeat → 0x041
-            hip  node 1 Get_Encoder_Estimates (cmd 0x09) → 0x029
+┌─────────────────────────────────────┬──────────────────────────┐
+│ ID (11 bits)                        │ data (8 bytes)           │
+│ [ node_id : 6 bits ][ cmd_id : 5 ]  │ [0][1][2][3][4][5][6][7] │
+└─────────────────────────────────────┴──────────────────────────┘
+  which ODrive       which message       layout depends on cmd_id
+
+id = node_id << 5 | cmd_id         node_id = id >> 5       cmd_id = id & 0x1F
+hip  node 1 heartbeat → 0x021      knee node 2 heartbeat → 0x041
+hip  node 1 Get_Encoder_Estimates (cmd 0x09) → 0x029
 ```
+
+- `cmd_id` sits in the **low 5 bits** (values 0-31), so `node_id` is shifted up by 5 to sit above it; 6 + 5 = 11 uses the whole ID. Max 64 nodes per bus.
+- `cmd_id` is assigned by ODrive (CANSimple), not by us: `0x01` Heartbeat (sent by the ODrive every `heartbeat_msg_rate_ms`, nobody has to ask), `0x07` Set_Axis_State, `0x09` Get_Encoder_Estimates, `0x0C` Set_Input_Pos, `0x0D` Set_Input_Vel, `0x18` Clear_Errors, … full table on the ODrive CAN Protocol page.
+- The same 8 bytes mean different things under different `cmd_id`s, so the parser checks the ID before reading the data, and the hardware filter below decides on the ID alone.
 
 Heartbeat (cmd `0x01`, DLC 8, little-endian):
 
@@ -401,7 +413,7 @@ Heartbeat (cmd `0x01`, DLC 8, little-endian):
 | 4 | `axis_state` | `odrive_axis_state_str()`: 0 UNDEFINED, 1 IDLE, 8 CLOSED_LOOP_CONTROL, … 16; 5 is unused |
 | 5 | `procedure_result` | |
 | 6 | bit 0 `trajectory_done` | other bits ignored |
-| 7 | — | |
+| 7 | — | not used by the ODrive |
 
 `odrive_parse_heartbeat()` returns -1 and leaves its outputs untouched for any other `cmd_id` or `len < 8`. The error word is assembled byte by byte, so the result does not depend on host endianness or alignment.
 
