@@ -271,7 +271,8 @@ static const char *lec_str(uint32_t lec)
 /* Bus health as numbers, so a wiring / termination / bit-timing problem shows up even when
  * no frame arrives. Rough reading: stuff/form/crc errors with REC climbing = bit timing or
  * noise; REC stuck at 0 with no frames = nothing on the bus (wiring, no 12 V, autobaud node
- * waiting); ErrorPassive / BusOff cannot happen here since we never transmit. */
+ * waiting). REC > 127 puts us in ErrorPassive even as a pure receiver (e.g. constant error
+ * frames from a wrong bit rate); BusOff cannot happen since only TEC drives it and we never transmit. */
 static void print_bus_status(FDCAN_HandleTypeDef *h, const char *name)
 {
     FDCAN_ProtocolStatusTypeDef ps;
