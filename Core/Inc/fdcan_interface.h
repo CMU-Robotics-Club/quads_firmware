@@ -14,3 +14,9 @@ int fdcan_loopback_test(void);
 int fdcan_echo_test(void);
 int initialize_CAN_buses(void);
 void send_msg_canfd1(uint32_t can_id, uint8_t *data, uint8_t length);
+
+/* ODrive heartbeat path on FDCAN1 internal loopback: hardware filter (heartbeat of any node,
+ * everything else rejected) + odrive_parse_heartbeat(). Sends fake hip/knee heartbeats and
+ * one encoder frame that must be dropped. Prints each step. Restores like above.
+ * Returns 0 on PASS, 1 on FAIL. */
+int fdcan_heartbeat_test(void);

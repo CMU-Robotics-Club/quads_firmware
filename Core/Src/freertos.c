@@ -132,6 +132,7 @@ void StartDefaultTask(void *argument)
   DWT_Init();
   // mcp_loopback_test(); /* MCP2518FD bring-up: runs once, prints results over RTT */
   // fdcan_loopback_test(); /* FDCAN1-3 bring-up: runs once, no transceiver needed */
+  // fdcan_heartbeat_test(); /* ODrive heartbeat filter + parser on FDCAN1 loopback */
   // initialize_CAN_buses();
   for (;;)
   {
