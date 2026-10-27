@@ -51,7 +51,10 @@ int main(void)
   assert(strcmp(odrive_axis_state_str(0), "UNDEFINED") == 0);
   assert(strcmp(odrive_axis_state_str(1), "IDLE") == 0);
   assert(strcmp(odrive_axis_state_str(8), "CLOSED_LOOP_CONTROL") == 0);
+  assert(strcmp(odrive_axis_state_str(14), "ANTICOGGING_CAL") == 0);
+  assert(strcmp(odrive_axis_state_str(16), "HARMONIC_CAL_COMM") == 0);
   assert(strcmp(odrive_axis_state_str(5), "?") == 0);
+  assert(strcmp(odrive_axis_state_str(17), "?") == 0);
   assert(strcmp(odrive_axis_state_str(0xFF), "?") == 0);
 
   puts("test_odrive_can: PASS");
