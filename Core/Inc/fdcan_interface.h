@@ -11,3 +11,9 @@
  * Returns the number of instances that failed (0 = all PASS). */
 int fdcan_loopback_test(void);
 int fdcan_echo_test(void);
+
+/* ODrive heartbeat path on FDCAN1 internal loopback: hardware filter (heartbeat of any node,
+ * everything else rejected) + odrive_parse_heartbeat(). Sends fake hip/knee heartbeats and
+ * one encoder frame that must be dropped. Prints each step. Restores like above.
+ * Returns 0 on PASS, 1 on FAIL. */
+int fdcan_heartbeat_test(void);
