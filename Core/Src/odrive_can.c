@@ -39,6 +39,8 @@ const char *odrive_axis_state_str(uint8_t state)
     case ODRIVE_AXIS_STATE_ENCODER_HALL_POL_CAL:   return "ENCODER_HALL_POL_CAL";
     case ODRIVE_AXIS_STATE_ENCODER_HALL_PHASE_CAL: return "ENCODER_HALL_PHASE_CAL";
     case ODRIVE_AXIS_STATE_ANTICOGGING_CAL:        return "ANTICOGGING_CAL";
+    case ODRIVE_AXIS_STATE_HARMONIC_CAL:           return "HARMONIC_CAL";
+    case ODRIVE_AXIS_STATE_HARMONIC_CAL_COMM:      return "HARMONIC_CAL_COMM";
     }
     return "?";
 }

@@ -23,7 +23,7 @@
 
 #define ODRIVE_HEARTBEAT_LEN 8U
 
-/* AxisState (ODrive odrive_enums.h) */
+/* AxisState (ODrive.Axis.AxisState, matches odriverobotics/ODriveArduino ODriveEnums.h; 5 is unused) */
 #define ODRIVE_AXIS_STATE_UNDEFINED            0U
 #define ODRIVE_AXIS_STATE_IDLE                 1U
 #define ODRIVE_AXIS_STATE_STARTUP_SEQUENCE     2U
@@ -38,6 +38,8 @@
 #define ODRIVE_AXIS_STATE_ENCODER_HALL_POL_CAL 12U
 #define ODRIVE_AXIS_STATE_ENCODER_HALL_PHASE_CAL 13U
 #define ODRIVE_AXIS_STATE_ANTICOGGING_CAL      14U
+#define ODRIVE_AXIS_STATE_HARMONIC_CAL         15U
+#define ODRIVE_AXIS_STATE_HARMONIC_CAL_COMM    16U
 
 typedef struct {
     uint32_t axis_error;      /* bytes 0-3, little-endian */
