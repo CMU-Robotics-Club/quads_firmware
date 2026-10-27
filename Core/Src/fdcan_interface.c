@@ -253,6 +253,92 @@ int fdcan_heartbeat_test(void)
     return fail;
 }
 
+static const char *lec_str(uint32_t lec)
+{
+    switch (lec) {
+    case FDCAN_PROTOCOL_ERROR_NONE:      return "none";
+    case FDCAN_PROTOCOL_ERROR_STUFF:     return "stuff";
+    case FDCAN_PROTOCOL_ERROR_FORM:      return "form";
+    case FDCAN_PROTOCOL_ERROR_ACK:       return "ack";
+    case FDCAN_PROTOCOL_ERROR_BIT1:      return "bit1";
+    case FDCAN_PROTOCOL_ERROR_BIT0:      return "bit0";
+    case FDCAN_PROTOCOL_ERROR_CRC:       return "crc";
+    case FDCAN_PROTOCOL_ERROR_NO_CHANGE: return "no change";
+    }
+    return "?";
+}
+
+/* Bus health as numbers, so a wiring / termination / bit-timing problem shows up even when
+ * no frame arrives. Rough reading: stuff/form/crc errors with REC climbing = bit timing or
+ * noise; REC stuck at 0 with no frames = nothing on the bus (wiring, no 12 V, autobaud node
+ * waiting); ErrorPassive / BusOff cannot happen here since we never transmit. */
+static void print_bus_status(FDCAN_HandleTypeDef *h, const char *name)
+{
+    FDCAN_ProtocolStatusTypeDef ps;
+    FDCAN_ErrorCountersTypeDef ec;
+    if (HAL_FDCAN_GetProtocolStatus(h, &ps) != HAL_OK || HAL_FDCAN_GetErrorCounters(h, &ec) != HAL_OK) {
+        printf("%s status: read failed\r\n", name);
+        return;
+    }
+    printf("%s status: last error %s, warning %lu, error passive %lu, bus off %lu\r\n", name,
+           lec_str(ps.LastErrorCode), (unsigned long)ps.Warning,
+           (unsigned long)ps.ErrorPassive, (unsigned long)ps.BusOff);
+    printf("%s counters: TEC %lu REC %lu (passive %lu) logged %lu\r\n", name,
+           (unsigned long)ec.TxErrorCnt, (unsigned long)ec.RxErrorCnt,
+           (unsigned long)ec.RxErrorPassive, (unsigned long)ec.ErrorLogging);
+}
+
+int fdcan_listen_heartbeats(FDCAN_HandleTypeDef *h, uint32_t ms)
+{
+    const char *name = "listen";
+
+    /* Normal mode, not bus monitoring: a listen-only node never ACKs, so the ODrive would see
+     * ACK errors and retransmit forever. We ACK but never transmit a frame of our own. */
+    HAL_StatusTypeDef st = set_mode(h, FDCAN_MODE_NORMAL);
+    printf("%s normal mode: %s\r\n", name, status_str(st));
+    if (st == HAL_OK) {
+        st = heartbeat_filter(h);
+        printf("%s filter: %s\r\n", name, status_str(st));
+    }
+    int started = 0;
+    if (st == HAL_OK) {
+        st = HAL_FDCAN_Start(h);
+        printf("%s start: %s\r\n", name, status_str(st));
+        started = st == HAL_OK;
+    }
+
+    int count = -1;
+    if (st == HAL_OK) {
+        count = 0;
+        printf("%s %lu ms on 1 Mbps, heartbeats only (filter 0x001/0x01F)\r\n", name, (unsigned long)ms);
+        uint32_t start = HAL_GetTick();
+        while (HAL_GetTick() - start < ms) {
+            FDCAN_RxHeaderTypeDef rx;
+            uint8_t rx_data[8];
+            /* Short timeout so the loop stays responsive to the overall deadline. */
+            if (receive(h, &rx, rx_data, 1) != HAL_OK) continue;
+            count++;
+            uint8_t node;
+            odrive_heartbeat_t hb;
+            if (odrive_parse_heartbeat(rx.Identifier, rx_data, rx.DataLength, &node, &hb) != 0) {
+                /* Filter passed it, so this is a heartbeat with DLC < 8: print raw. */
+                printf("  id 0x%03lX len %lu: not a heartbeat\r\n",
+                       (unsigned long)rx.Identifier, (unsigned long)rx.DataLength);
+                continue;
+            }
+            printf("  node %u state %u (%s) error 0x%08lX proc %u traj %u\r\n", node,
+                   hb.axis_state, odrive_axis_state_str(hb.axis_state),
+                   (unsigned long)hb.axis_error, hb.procedure_result, hb.trajectory_done);
+        }
+        printf("%s done: %d heartbeat frames in %lu ms\r\n", name, count, (unsigned long)ms);
+        print_bus_status(h, name);
+    }
+
+    st = restore(h, started);
+    printf("%s restore: %s\r\n", name, status_str(st));
+    return count;
+}
+
 int fdcan_loopback_test(void)
 {
     int fails = 0;

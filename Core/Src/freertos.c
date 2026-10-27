@@ -38,7 +38,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+/* Define to listen for ODrive heartbeats on the real bus (FDCAN1) after the loopback tests.
+ * Off by default: it needs a transceiver and delays boot by HEARTBEAT_LISTEN_MS. */
+/* #define RUN_HEARTBEAT_LISTEN */
+#define HEARTBEAT_LISTEN_MS 3000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -133,6 +136,9 @@ void StartDefaultTask(void *argument)
   // mcp_loopback_test(); /* MCP2518FD bring-up: runs once, prints results over RTT */
   // fdcan_loopback_test(); /* FDCAN1-3 bring-up: runs once, no transceiver needed */
   // fdcan_heartbeat_test(); /* ODrive heartbeat filter + parser on FDCAN1 loopback */
+#ifdef RUN_HEARTBEAT_LISTEN
+  fdcan_listen_heartbeats(&hfdcan1, HEARTBEAT_LISTEN_MS); /* real bus, transceiver on CAN1 */
+#endif
   // initialize_CAN_buses();
   for (;;)
   {
