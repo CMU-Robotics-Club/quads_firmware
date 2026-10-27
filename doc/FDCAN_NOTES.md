@@ -2,7 +2,7 @@
 
 2026-10-22 · branch `fdcan-loopback`, commit `a6a8ae5` · status: **internal loopback 3/3 PASS on the Nucleo; not yet tested on a real bus**
 
-2026-10-27 · branch `odrive-heartbeat` (on top of `68b17a1`) · adds the ODrive heartbeat parser, a heartbeat loopback test and a real-bus listen (sections 4b, 4c, 4d). Status: **builds, host tests pass; not yet run on the board**
+2026-10-27 · branch `odrive-heartbeat` (on top of `68b17a1`) · adds the ODrive heartbeat parser, a heartbeat loopback test and a real-bus listen (sections 4b, 4c, 4d). Status: **heartbeat loopback test PASS on the Nucleo (2026-10-27); real-bus listen not yet run**
 
 Sources (not in this repo; kept in the club's shared `ref/` folder):
 - RM = `STM32H723_reference_manual_RM0468r3.pdf` (Rev 3)
@@ -431,6 +431,25 @@ Runs on FDCAN1 right after the loopback test in section 4, same skeleton (intern
 
 Each step prints `send` / `receive` / parsed fields. One failure does not skip the rest, so RTT shows all three. Expected output ends with `FDCAN1 heartbeat test: PASS`.
 
+**Result, 2026-10-27, Nucleo-H723ZG, branch `odrive-heartbeat`:** PASS, together with the section 4 loopback (3/3) in the same boot. RTT (filtered with `grep -E "heartbeat|FDCAN|node"`):
+
+```
+FDCAN1 heartbeat send 0x021: OK
+FDCAN1 heartbeat receive: OK
+  node 1 state 8 (CLOSED_LOOP_CONTROL) error 0x00000000
+FDCAN1 heartbeat send 0x041: OK
+FDCAN1 heartbeat receive: OK
+  node 2 state 1 (IDLE) error 0x12345678
+FDCAN1 heartbeat send 0x029: OK
+FDCAN1 heartbeat receive: timeout (expect timeout)
+FDCAN1 heartbeat restore: OK
+FDCAN1 heartbeat test: PASS
+```
+
+This shows the filter accepts heartbeats from any node and rejects the encoder frame on the chip, and the parser gets node ID, state and the 4-byte error (byte order) right. It says nothing about the transceiver, wiring or a real ODrive; that is section 4d.
+
+Viewing tip: the default task prints `HERE!!!2` / `time:` in a loop, which scrolls the one-shot test output away. Pipe the RTT viewer through `grep` and press RESET.
+
 ## 4d. Real-bus listen (`fdcan_listen_heartbeats(h, ms)`)
 
 Off by default. In `freertos.c` uncomment `#define RUN_HEARTBEAT_LISTEN` (USER CODE PD block); `HEARTBEAT_LISTEN_MS` (3000) is the listen time. Needs a transceiver on CAN1 and a live bus.
@@ -460,8 +479,8 @@ Restores like the other tests (stopped, Normal, default global filter). Returns 
 - [x] FDCAN internal loopback passes on the Nucleo (3/3 PASS, 2026-10-22)
 - [ ] HSE_ON vs HSE_BYPASS on the Nucleo and on our PCB
 - [ ] Motor split across CAN1–4 (Advaith, TBD)
-- [ ] `fdcan_heartbeat_test()` PASS on the Nucleo (loopback, no wiring)
+- [x] `fdcan_heartbeat_test()` PASS on the Nucleo (loopback, no wiring, 2026-10-27)
 - [ ] `fdcan_listen_heartbeats()` sees hip (node 1) heartbeats on the real bus
 - [ ] Bus and transceivers (ADM3057) work at 87.5% on the real bus
-- [ ] AxisState names in `odrive_can.h` against Laika `odrive_enums.h` (checked against the official ODriveArduino list only)
+- [x] AxisState names in `odrive_can.h`: 0-14 match Laika `odrive_enums.h`; 15-16 come from ODriveArduino `ODriveEnums.h` (Laika's copy stops at 14)
 - [ ] ODrive S1 120 Ω termination setting
