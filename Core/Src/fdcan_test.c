@@ -178,7 +178,7 @@ int fdcan_echo_test(void)
   printf("%s start: %s\r\n", name, status_str(st));
   if (st != HAL_OK) return 1;
 
-  printf("done with setup of %s", name);
+  printf("done with setup of %s\r\n", name);
 
   return 0;
 }
