@@ -27,6 +27,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "rtt_log.h"
+#include "mcp2518fd.h"
+#include "fdcan_test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -117,6 +119,8 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
   (void)argument;
   DWT_Init();
+  mcp_loopback_test(); /* MCP2518FD bring-up: runs once, prints results over RTT */
+  fdcan_loopback_test(); /* FDCAN1-3 bring-up: runs once, no transceiver needed */
   for (;;)
   {
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
