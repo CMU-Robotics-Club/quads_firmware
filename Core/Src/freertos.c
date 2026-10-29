@@ -119,21 +119,22 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
   (void)argument;
   DWT_Init();
-  mcp_loopback_test(); /* MCP2518FD bring-up: runs once, prints results over RTT */
-  fdcan_loopback_test(); /* FDCAN1-3 bring-up: runs once, no transceiver needed */
+  // mcp_loopback_test(); /* MCP2518FD bring-up: runs once, prints results over RTT */
+  // fdcan_loopback_test(); /* FDCAN1-3 bring-up: runs once, no transceiver needed */
+  fdcan_echo_test();
   for (;;)
   {
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
     osDelay(200);
 
-    uint32_t start_cycles = DWT->CYCCNT;
-    fast_printf("HERE!!!2!!!!!!!!\r\n");
-    uint32_t elapsed_cycles = DWT->CYCCNT - start_cycles;
-    /* Convert outside timing; avoid requiring float printf support. */
-    uint64_t elapsed_ns = (uint64_t)elapsed_cycles * 1000000000ULL / SystemCoreClock;
-    fast_printf("time: %lu.%03lu us\r\n",
-                (unsigned long)(elapsed_ns / 1000U),
-                (unsigned long)(elapsed_ns % 1000U));
+    // uint32_t start_cycles = DWT->CYCCNT;
+    // fast_printf("HERE!!!2!!!!!!!!\r\n");
+    // uint32_t elapsed_cycles = DWT->CYCCNT - start_cycles;
+    // /* Convert outside timing; avoid requiring float printf support. */
+    // uint64_t elapsed_ns = (uint64_t)elapsed_cycles * 1000000000ULL / SystemCoreClock;
+    // fast_printf("time: %lu.%03lu us\r\n",
+    //             (unsigned long)(elapsed_ns / 1000U),
+    //             (unsigned long)(elapsed_ns % 1000U));
   }
   /* USER CODE END StartDefaultTask */
 }

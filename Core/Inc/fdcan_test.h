@@ -11,5 +11,6 @@
  * Prints each step. Restores Normal mode afterwards (controllers left stopped).
  * Returns the number of instances that failed (0 = all PASS). */
 int fdcan_loopback_test(void);
+int fdcan_echo_test(void);
 
 #endif /* FDCAN_TEST_H */

@@ -149,3 +149,69 @@ int fdcan_loopback_test(void)
     printf("FDCAN loopback: %d/3 PASS\r\n", 3 - fails);
     return fails;
 }
+
+int fdcan_echo_test(void)
+{
+  const char *name = "FDCAN1";
+  FDCAN_HandleTypeDef *h = &hfdcan1;
+  HAL_StatusTypeDef st;
+
+  printf("STARTING THE FDCAN ECHO");
+
+  /* Set to normal physical bus mode */
+  st = set_mode(h, FDCAN_MODE_NORMAL);
+  printf("%s mode normal: %s\r\n", name, status_str(st));
+  if (st != HAL_OK) return 1;
+
+  /* Configure filter to accept standard frames into FIFO0 */
+  st = accept_all(h);
+  printf("%s filter: %s\r\n", name, status_str(st));
+  if (st != HAL_OK) return 1;
+
+  /* Enable the RX FIFO0 New Message interrupt notification */
+  st = HAL_FDCAN_ActivateNotification(h, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+  printf("%s activate notification: %s\r\n", name, status_str(st));
+  if (st != HAL_OK) return 1;
+
+  /* Start the peripheral */
+  st = HAL_FDCAN_Start(h);
+  printf("%s start: %s\r\n", name, status_str(st));
+  if (st != HAL_OK) return 1;
+
+  printf("done with setup of %s", name);
+
+  return 0;
+}
+
+// Callback 
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+{
+  // THIS IS SET UP TO ECHO BACK TO THE BUS
+  printf("can message received!");
+  if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0) {
+    // new message arrived
+    FDCAN_RxHeaderTypeDef rx_hdr;
+    uint8_t rx_data[8];
+
+    // getting the 
+    if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rx_hdr, rx_data) == HAL_OK) {
+            
+      // Copying message header for transmitting
+      FDCAN_TxHeaderTypeDef tx_hdr = {
+          .Identifier          = rx_hdr.Identifier + 1, // Echo with ID+1 or same ID
+          .IdType              = rx_hdr.IdType,
+          .TxFrameType         = FDCAN_DATA_FRAME,
+          .DataLength          = rx_hdr.DataLength,
+          .ErrorStateIndicator = FDCAN_ESI_ACTIVE,
+          .BitRateSwitch       = FDCAN_BRS_OFF,
+          .FDFormat            = rx_hdr.FDFormat,
+          .TxEventFifoControl  = FDCAN_NO_TX_EVENTS,
+          .MessageMarker       = 0,
+      };
+      // Add the message to the transmit fifo
+      HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &tx_hdr, rx_data);
+    }
+  }
+}
+
+
