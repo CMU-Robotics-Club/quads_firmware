@@ -169,9 +169,13 @@ int fdcan_echo_test(void)
   if (st != HAL_OK) return 1;
 
   /* Enable the RX FIFO0 New Message interrupt notification */
+  st = HAL_FDCAN_ConfigInterruptLines(h, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, FDCAN_INTERRUPT_LINE0);
+  if (st != HAL_OK) return 1;
   st = HAL_FDCAN_ActivateNotification(h, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
   printf("%s activate notification: %s\r\n", name, status_str(st));
   if (st != HAL_OK) return 1;
+
+  
 
   /* Start the peripheral */
   st = HAL_FDCAN_Start(h);
@@ -187,7 +191,7 @@ int fdcan_echo_test(void)
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
   // THIS IS SET UP TO ECHO BACK TO THE BUS
-  printf("can message received!");
+  printf("can message received!\r\n");
   if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0) {
     // new message arrived
     FDCAN_RxHeaderTypeDef rx_hdr;
