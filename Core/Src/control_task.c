@@ -35,8 +35,17 @@ extern void ControlTask(void *argument) {
     switch (sys_state) {
       case SYSTEM_STATE_INIT:
         for(int i = 0; i<NUM_JOINTS; i++){
-          raw_joints[i].joint_initialized = false;
-          raw_joints[i].motor_pos_rad = 0.0;
+          JointRawFeedback_t joint = raw_joints[i];
+          joint.joint_initialized = false;
+          joint.motor_pos_rad = 0.0;
+          joint.invert_direction = false;
+          joint.last_msg_tick = 0;
+          if(i == HIP_INDEX){
+            joint.can_id = 0; // TODO: Match the real one
+          }
+          else{
+            joint.can_id = 1;
+          }
         }
         taskENTER_CRITICAL();
         memcpy((void*) g_raw_joints, raw_joints, sizeof(raw_joints));
@@ -105,9 +114,21 @@ extern void ControlTask(void *argument) {
 
         float hip_pos = raw_joints[HIP_INDEX].motor_pos_rad / 14.0f;
         float hip_vel = raw_joints[HIP_INDEX].motor_pos_rad / 14.0f;
-        //TODO: FINISH
+        float knee_pos = raw_joints[KNEE_INDEX].motor_pos_rad / 14.0f;
+        float knee_vel = raw_joints[KNEE_INDEX].motor_pos_rad / 14.0f;
+        printf("hip_pos: %f\r\n", hip_pos);
+        printf("hip_vel: %f\r\n", hip_vel);
+        printf("knee_pos: %f\r\n", knee_pos);
+        printf("knee_vel: %f\r\n", knee_vel);
         break;
       }
+
+      case SYSTEM_STATE_FAULT:
+      default:
+        for (int i = 0; i<NUM_JOINTS; i++){
+          ODrive_SetAxisState(raw_joints[i].can_id, AXIS_STATE_IDLE);
+        }
+        break;
     }
   }
 }

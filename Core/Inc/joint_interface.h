@@ -18,14 +18,8 @@ typedef enum {
 } SystemState_t;
 
 typedef struct {
-    uint8_t can_id;
-    bool invert_direction;
     float torque_limit;
-    float backlash_rad;
-    float gear_ratio; // e.g., 14.0f
-} JointConfig_t;
-
-typedef struct {
+    uint8_t can_id;
     float motor_pos_rad;
     float motor_vel_rad;
     float motor_torque_est;
@@ -34,6 +28,7 @@ typedef struct {
     uint8_t odrive_state;
     uint32_t last_msg_tick; // For watchdog
     bool joint_initialized;
+    bool invert_direction;
 } JointRawFeedback_t;
 
 typedef struct {
