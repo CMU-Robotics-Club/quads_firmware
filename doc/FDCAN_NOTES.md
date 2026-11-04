@@ -2,10 +2,14 @@
 
 2026-10-22 · branch `fdcan-loopback`, commit `a6a8ae5` · status: **internal loopback 3/3 PASS on the Nucleo; not yet tested on a real bus**
 
+2026-10-27 · branch `odrive-heartbeat` (on top of `68b17a1`) · adds the ODrive heartbeat parser, a heartbeat loopback test and a real-bus listen (sections 4b, 4c, 4d). Status: **heartbeat loopback test PASS on the Nucleo (2026-10-27); real-bus listen not yet run**
+
 Sources (not in this repo; kept in the club's shared `ref/` folder):
 - RM = `STM32H723_reference_manual_RM0468r3.pdf` (Rev 3)
 - UM2407 = Nucleo-H723ZG user manual
 - ODrive docs, CAN Protocol page, v0.6.12
+- ODrive AxisState values: odriverobotics/ODriveArduino `ODriveEnums.h` (`ODrive.Axis.AxisState`)
+- Heartbeat layout: Laika-Software `odrive_base/include/can_simple_messages.hpp` (lines 60-97), `laika_hardware_interface.cpp` `on_can_msg` / `on_heartbeat`
 
 ## Overview
 
@@ -364,9 +368,9 @@ If you change element counts, recompute so the regions don't overlap.
 | Tx Fifo Queue Mode | FIFO | Send in the order queued (Queue mode would send lowest ID first) |
 | Tx Elmt Size | 8 bytes | Classic CAN |
 
-## 4. Loopback test (`Core/Src/fdcan_test.c`)
+## 4. Loopback test (`Core/Src/fdcan_interface.c`)
 
-Runs once from `StartDefaultTask`, results over RTT. Per instance:
+Called once from `StartDefaultTask` (commented out by default; uncomment it in `freertos.c` to run), results over RTT. Per instance:
 
 1. Re-run `HAL_FDCAN_Init` with `FDCAN_MODE_INTERNAL_LOOPBACK`: the controller receives its own frames inside the chip. TX pin stays recessive, RX pin ignored, so no transceiver or wiring.
 2. Filter 0 = mask 0 (accept every standard ID into RX FIFO0). Global filter set to **reject** non-matching frames, so a frame only arrives if filter 0 matched it. (The reset default accepts non-matching frames into FIFO0 and would hide a broken filter.)
@@ -378,6 +382,90 @@ Runs once from `StartDefaultTask`, results over RTT. Per instance:
 | Kernel clock on, Init/Start work | Pins, transceivers, wiring |
 | Filter 0 matches | Bit timing against another node |
 | TX → RX path through this instance's Message RAM | Message RAM regions don't overlap (instances run one at a time, each Init clears its own region) |
+
+## 4b. ODrive CAN-Simple frames (`Core/Src/odrive_can.c`)
+
+Pure C, no HAL, so `tests/run_host_tests.py` compiles and runs it on the host (`tests/test_odrive_can.c`).
+
+A classic CAN frame is an 11-bit ID plus 0-8 data bytes. ODrive splits the ID into two fields and uses the data bytes as the message body:
+
+```
+┌─────────────────────────────────────┬──────────────────────────┐
+│ ID (11 bits)                        │ data (8 bytes)           │
+│ [ node_id : 6 bits ][ cmd_id : 5 ]  │ [0][1][2][3][4][5][6][7] │
+└─────────────────────────────────────┴──────────────────────────┘
+  which ODrive       which message       layout depends on cmd_id
+
+id = node_id << 5 | cmd_id         node_id = id >> 5       cmd_id = id & 0x1F
+hip  node 1 heartbeat → 0x021      knee node 2 heartbeat → 0x041
+hip  node 1 Get_Encoder_Estimates (cmd 0x09) → 0x029
+```
+
+- `cmd_id` sits in the **low 5 bits** (values 0-31), so `node_id` is shifted up by 5 to sit above it; 6 + 5 = 11 uses the whole ID. Max 64 nodes per bus.
+- `cmd_id` is assigned by ODrive (CANSimple), not by us: `0x01` Heartbeat (sent by the ODrive every `heartbeat_msg_rate_ms`, nobody has to ask), `0x07` Set_Axis_State, `0x09` Get_Encoder_Estimates, `0x0C` Set_Input_Pos, `0x0D` Set_Input_Vel, `0x18` Clear_Errors, … full table on the ODrive CAN Protocol page.
+- The same 8 bytes mean different things under different `cmd_id`s, so the parser checks the ID before reading the data, and the hardware filter below decides on the ID alone.
+
+Heartbeat (cmd `0x01`, DLC 8, little-endian):
+
+| Bytes | Field | Note |
+|---|---|---|
+| 0-3 | `axis_error` | uint32 LE |
+| 4 | `axis_state` | `odrive_axis_state_str()`: 0 UNDEFINED, 1 IDLE, 8 CLOSED_LOOP_CONTROL, … 16; 5 is unused |
+| 5 | `procedure_result` | |
+| 6 | bit 0 `trajectory_done` | other bits ignored |
+| 7 | — | not used by the ODrive |
+
+`odrive_parse_heartbeat()` returns -1 and leaves its outputs untouched for any other `cmd_id` or `len < 8`. The error word is assembled byte by byte, so the result does not depend on host endianness or alignment.
+
+**Hardware filter for heartbeats from any node**: filter ID `0x001`, mask `0x01F`. Only the 5 `cmd_id` bits are compared, the 6 `node_id` bits are don't-care. Global filter = reject, so everything that is not a heartbeat is dropped before it reaches software. Both the loopback test and the real-bus listen use this one filter (`heartbeat_filter()` in `fdcan_interface.c`).
+
+## 4c. Heartbeat loopback test (`fdcan_heartbeat_test()`)
+
+Runs on FDCAN1 right after the loopback test in section 4, same skeleton (internal loopback → filter → start → … → restore). Tests the whole receive path, hardware filter → RX FIFO0 → parser, without a transceiver:
+
+| Step | Frame | Expect |
+|---|---|---|
+| 1 | `0x021`, error 0, state 8 | received, parsed as node 1, CLOSED_LOOP_CONTROL |
+| 2 | `0x041`, error `0x12345678` (on the wire `78 56 34 12`), state 1 | node 2, error `0x12345678`. A byte-order bug prints `0x78563412` |
+| 3 | `0x029` (encoder frame) | **timeout**. First test in this repo that a filter *rejects*; section 4 only checks that one accepts |
+
+Each step prints `send` / `receive` / parsed fields. One failure does not skip the rest, so RTT shows all three. Expected output ends with `FDCAN1 heartbeat test: PASS`.
+
+**Result, 2026-10-27, Nucleo-H723ZG, branch `odrive-heartbeat`:** PASS, together with the section 4 loopback (3/3) in the same boot. RTT (filtered with `grep -E "heartbeat|FDCAN|node"`):
+
+```
+FDCAN1 heartbeat send 0x021: OK
+FDCAN1 heartbeat receive: OK
+  node 1 state 8 (CLOSED_LOOP_CONTROL) error 0x00000000
+FDCAN1 heartbeat send 0x041: OK
+FDCAN1 heartbeat receive: OK
+  node 2 state 1 (IDLE) error 0x12345678
+FDCAN1 heartbeat send 0x029: OK
+FDCAN1 heartbeat receive: timeout (expect timeout)
+FDCAN1 heartbeat restore: OK
+FDCAN1 heartbeat test: PASS
+```
+
+This shows the filter accepts heartbeats from any node and rejects the encoder frame on the chip, and the parser gets node ID, state and the 4-byte error (byte order) right. It says nothing about the transceiver, wiring or a real ODrive; that is section 4d.
+
+Viewing tip: the default task prints `HERE!!!2` / `time:` in a loop, which scrolls the one-shot test output away. Pipe the RTT viewer through `grep` and press RESET.
+
+## 4d. Real-bus listen (`fdcan_listen_heartbeats(h, ms)`)
+
+Off by default. In `freertos.c` uncomment `#define RUN_HEARTBEAT_LISTEN` (USER CODE PD block); `HEARTBEAT_LISTEN_MS` (3000) is the listen time. Needs a transceiver on CAN1 and a live bus.
+
+- **Normal mode, never transmits.** Not `FDCAN_MODE_BUS_MONITORING`: a listen-only node does not ACK, so the ODrive would see ACK errors and retransmit the same heartbeat forever. In Normal mode we ACK; there is simply no `send()` call.
+- Same heartbeat filter as 4b, Start, poll RX FIFO0 in 1 ms slices for `ms`, print `node / state (name) / error / proc / traj` per heartbeat, then the frame count.
+- Then `HAL_FDCAN_GetProtocolStatus` + `HAL_FDCAN_GetErrorCounters`, so a fault shows up as numbers even when no frame arrives:
+
+| Printout | Likely meaning |
+|---|---|
+| frames > 0, `last error none`, REC 0 | bus OK |
+| 0 frames, REC 0, `last error none` | nothing on the bus: wiring, ODrive logic supply off, or an autobaud node still waiting for traffic (the knee is autobaud, the hip is fixed 1 Mbps: wire the hip first) |
+| `stuff` / `form` / `crc`, REC climbing | bit timing (sample point, prescaler) or noise / missing 120 Ω termination |
+| `ack`, TEC climbing | cannot happen here, we never transmit |
+
+Restores like the other tests (stopped, Normal, default global filter). Returns the frame count, or -1 if setup failed. At 100 ms heartbeat, 3000 ms should show about 30 frames from node 1.
 
 ## 5. Generated code to check after every CubeMX regenerate
 
@@ -391,4 +479,8 @@ Runs once from `StartDefaultTask`, results over RTT. Per instance:
 - [x] FDCAN internal loopback passes on the Nucleo (3/3 PASS, 2026-10-22)
 - [ ] HSE_ON vs HSE_BYPASS on the Nucleo and on our PCB
 - [ ] Motor split across CAN1–4 (Advaith, TBD)
+- [x] `fdcan_heartbeat_test()` PASS on the Nucleo (loopback, no wiring, 2026-10-27)
+- [ ] `fdcan_listen_heartbeats()` sees hip (node 1) heartbeats on the real bus
 - [ ] Bus and transceivers (ADM3057) work at 87.5% on the real bus
+- [x] AxisState names in `odrive_can.h`: 0-14 match Laika `odrive_enums.h`; 15-16 come from ODriveArduino `ODriveEnums.h` (Laika's copy stops at 14)
+- [ ] ODrive S1 120 Ω termination setting

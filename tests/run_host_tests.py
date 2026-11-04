@@ -81,4 +81,11 @@ if __name__ == "__main__":
                         "Middlewares/Third_Party/SEGGER_RTT/SEGGER_RTT.c",
                         "-o", str(binary)], cwd=ROOT, check=True)
         subprocess.run([str(binary)], check=True)
+
+        binary = Path(directory) / "test_odrive_can"
+        subprocess.run(["cc", "-std=c11", "-Wall", "-Wextra", "-Werror",
+                        "-ICore/Inc",
+                        "tests/test_odrive_can.c", "Core/Src/odrive_can.c",
+                        "-o", str(binary)], cwd=ROOT, check=True)
+        subprocess.run([str(binary)], check=True)
     unittest.main()
