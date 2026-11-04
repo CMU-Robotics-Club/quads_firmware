@@ -215,6 +215,9 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
       // Add the message to the transmit fifo
       HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &tx_hdr, rx_data);
     }
+    else {
+      printf("Failed to echo");
+    }
   }
 }
 

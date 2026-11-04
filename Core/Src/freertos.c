@@ -127,14 +127,14 @@ void StartDefaultTask(void *argument)
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
     osDelay(200);
 
-    // uint32_t start_cycles = DWT->CYCCNT;
-    // fast_printf("HERE!!!2!!!!!!!!\r\n");
-    // uint32_t elapsed_cycles = DWT->CYCCNT - start_cycles;
-    // /* Convert outside timing; avoid requiring float printf support. */
-    // uint64_t elapsed_ns = (uint64_t)elapsed_cycles * 1000000000ULL / SystemCoreClock;
-    // fast_printf("time: %lu.%03lu us\r\n",
-    //             (unsigned long)(elapsed_ns / 1000U),
-    //             (unsigned long)(elapsed_ns % 1000U));
+    uint32_t start_cycles = DWT->CYCCNT;
+    fast_printf("HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!2!!!!!!!!\r\n");
+    uint32_t elapsed_cycles = DWT->CYCCNT - start_cycles;
+    /* Convert outside timing; avoid requiring float printf support. */
+    uint64_t elapsed_ns = (uint64_t)elapsed_cycles * 1000000000ULL / SystemCoreClock;
+    fast_printf("time: %lu.%03lu us\r\n",
+                (unsigned long)(elapsed_ns / 1000U),
+                (unsigned long)(elapsed_ns % 1000U));
   }
   /* USER CODE END StartDefaultTask */
 }
