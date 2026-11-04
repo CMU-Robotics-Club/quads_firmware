@@ -28,7 +28,7 @@
 /* USER CODE BEGIN Includes */
 #include "rtt_log.h"
 #include "mcp2518fd.h"
-#include "fdcan_test.h"
+#include "fdcan_interface.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

@@ -3,6 +3,7 @@
 #include "task.h"
 #include <stdio.h>
 #include "joint_interface.h"
+#include "odrive.h"
 #include <string.h>
 
 // volatile since ISRs can overwrite these vars
@@ -41,10 +42,10 @@ extern void ControlTask(void *argument) {
           joint.invert_direction = false;
           joint.last_msg_tick = 0;
           if(i == HIP_INDEX){
-            joint.can_id = 0; // TODO: Match the real one
+            joint.can_id = HIP_NODE_ID;
           }
           else{
-            joint.can_id = 1;
+            joint.can_id = KNEE_NODE_ID;
           }
         }
         taskENTER_CRITICAL();
@@ -65,10 +66,16 @@ extern void ControlTask(void *argument) {
         if(done){
           sys_state = SYSTEM_STATE_CLEAR_ERRORS;
         }
+      
+      case SYSTEM_STATE_CLEAR_ERRORS:
+        ODrive_ClearErrors(1, raw_joints[HIP_INDEX].can_id);
+        ODrive_ClearErrors(1, raw_joints[KNEE_INDEX].can_id);
+        sys_state = SYSTEM_STATE_ARM_MOTORS;
+        break;
 
       case SYSTEM_STATE_ARM_MOTORS:
         for (int i = 0; i<NUM_JOINTS; i++){
-          ODrive_SetAxisState(raw_joints[i].can_id, AXIS_STATE_CLOSED_LOOP_CONTROL);
+          ODrive_SetAxisState(1, raw_joints[i].can_id, AXIS_STATE_CLOSED_LOOP_CONTROL);
         }
         sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
         break;
@@ -92,7 +99,7 @@ extern void ControlTask(void *argument) {
         memcpy((void*) g_raw_joints, raw_joints, sizeof(raw_joints));
         taskEXIT_CRITICAL();
         sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
-        if(done){
+        if(all_calibrated){
           sys_state = SYSTEM_STATE_RUNNING;
         }
         break;
@@ -126,7 +133,7 @@ extern void ControlTask(void *argument) {
       case SYSTEM_STATE_FAULT:
       default:
         for (int i = 0; i<NUM_JOINTS; i++){
-          ODrive_SetAxisState(raw_joints[i].can_id, AXIS_STATE_IDLE);
+          ODrive_SetAxisState(1, raw_joints[i].can_id, AXIS_STATE_IDLE);
         }
         break;
     }

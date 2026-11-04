@@ -4,12 +4,13 @@
  * Internal loopback: the controller receives its own frames inside the chip.
  * The TX pin stays recessive and the RX pin is ignored, so no transceiver or wiring is needed.
  */
-#include "fdcan_test.h"
+#include "fdcan_interface.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #include "fdcan.h"
+#include "joint_interface.h"
 
 #define WAIT_MS 10
 
@@ -190,8 +191,7 @@ int fdcan_echo_test(void)
 // Callback 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
-  // THIS IS SET UP TO ECHO BACK TO THE BUS
-  printf("can message received!\r\n");
+  printf("CAN msg received!\r\n");
   if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0) {
     // new message arrived
     FDCAN_RxHeaderTypeDef rx_hdr;
@@ -199,24 +199,43 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
     // getting the 
     if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rx_hdr, rx_data) == HAL_OK) {
-            
+      
+      if((rx_hdr.Identifier & (~((1U << 11) - 1))) != 0){
+        printf("CAN MSG ERR: UNKNOWN CAN ID: %d\r\n", rx_hdr.Identifier);
+      }
+      uint32_t node_id = rx_hdr.Identifier >> 5;
+      uint32_t cmd_id = rx_hdr.Identifier & 0b11111;
+      uint8_t joint_index;
+      switch (node_id) {
+        case KNEE_NODE_ID:
+          joint_index = KNEE_INDEX;
+          break;
+        case HIP_NODE_ID:
+          joint_index = HIP_INDEX;
+          break;
+        default:
+          printf("CAN MSG ERR: UNKNOWN NODE ID: %d\r\n", node_id);
+          break;
+      }
+      
+      // THIS IS SET UP TO ECHO BACK TO THE BUS
       // Copying message header for transmitting
-      FDCAN_TxHeaderTypeDef tx_hdr = {
-          .Identifier          = rx_hdr.Identifier + 1, // Echo with ID+1 or same ID
-          .IdType              = rx_hdr.IdType,
-          .TxFrameType         = FDCAN_DATA_FRAME,
-          .DataLength          = rx_hdr.DataLength,
-          .ErrorStateIndicator = FDCAN_ESI_ACTIVE,
-          .BitRateSwitch       = FDCAN_BRS_OFF,
-          .FDFormat            = rx_hdr.FDFormat,
-          .TxEventFifoControl  = FDCAN_NO_TX_EVENTS,
-          .MessageMarker       = 0,
-      };
-      // Add the message to the transmit fifo
-      HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &tx_hdr, rx_data);
+      // FDCAN_TxHeaderTypeDef tx_hdr = {
+      //     .Identifier          = rx_hdr.Identifier + 1, // Echo with ID+1 or same ID
+      //     .IdType              = rx_hdr.IdType,
+      //     .TxFrameType         = FDCAN_DATA_FRAME,
+      //     .DataLength          = rx_hdr.DataLength,
+      //     .ErrorStateIndicator = FDCAN_ESI_ACTIVE,
+      //     .BitRateSwitch       = FDCAN_BRS_OFF,
+      //     .FDFormat            = rx_hdr.FDFormat,
+      //     .TxEventFifoControl  = FDCAN_NO_TX_EVENTS,
+      //     .MessageMarker       = 0,
+      // };
+      // // Add the message to the transmit fifo
+      // HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &tx_hdr, rx_data);
     }
     else {
-      printf("Failed to echo");
+      printf("Failed here idk why this would happen gl debugging this if you see this");
     }
   }
 }

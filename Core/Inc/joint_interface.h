@@ -5,6 +5,8 @@
 #define NUM_JOINTS 2 // 0: Hip, 1: Knee
 #define KNEE_INDEX 1
 #define HIP_INDEX  0
+#define KNEE_NODE_ID 0 // TODO: Match the real one
+#define HIP_NODE_ID 1
 
 // Current state
 typedef enum {
@@ -36,3 +38,6 @@ typedef struct {
     float target_vel_rad;
     uint32_t last_msg_tick;
 } JointCommand_t;
+
+extern volatile JointRawFeedback_t g_raw_joints[NUM_JOINTS];
+extern volatile JointCommand_t g_joint_command[NUM_JOINTS];
