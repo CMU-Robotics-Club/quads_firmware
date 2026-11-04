@@ -368,9 +368,9 @@ If you change element counts, recompute so the regions don't overlap.
 | Tx Fifo Queue Mode | FIFO | Send in the order queued (Queue mode would send lowest ID first) |
 | Tx Elmt Size | 8 bytes | Classic CAN |
 
-## 4. Loopback test (`Core/Src/fdcan_test.c`)
+## 4. Loopback test (`Core/Src/fdcan_interface.c`)
 
-Runs once from `StartDefaultTask`, results over RTT. Per instance:
+Called once from `StartDefaultTask` (commented out by default; uncomment it in `freertos.c` to run), results over RTT. Per instance:
 
 1. Re-run `HAL_FDCAN_Init` with `FDCAN_MODE_INTERNAL_LOOPBACK`: the controller receives its own frames inside the chip. TX pin stays recessive, RX pin ignored, so no transceiver or wiring.
 2. Filter 0 = mask 0 (accept every standard ID into RX FIFO0). Global filter set to **reject** non-matching frames, so a frame only arrives if filter 0 matched it. (The reset default accepts non-matching frames into FIFO0 and would hide a broken filter.)
@@ -417,7 +417,7 @@ Heartbeat (cmd `0x01`, DLC 8, little-endian):
 
 `odrive_parse_heartbeat()` returns -1 and leaves its outputs untouched for any other `cmd_id` or `len < 8`. The error word is assembled byte by byte, so the result does not depend on host endianness or alignment.
 
-**Hardware filter for heartbeats from any node**: filter ID `0x001`, mask `0x01F`. Only the 5 `cmd_id` bits are compared, the 6 `node_id` bits are don't-care. Global filter = reject, so everything that is not a heartbeat is dropped before it reaches software. Both the loopback test and the real-bus listen use this one filter (`heartbeat_filter()` in `fdcan_test.c`).
+**Hardware filter for heartbeats from any node**: filter ID `0x001`, mask `0x01F`. Only the 5 `cmd_id` bits are compared, the 6 `node_id` bits are don't-care. Global filter = reject, so everything that is not a heartbeat is dropped before it reaches software. Both the loopback test and the real-bus listen use this one filter (`heartbeat_filter()` in `fdcan_interface.c`).
 
 ## 4c. Heartbeat loopback test (`fdcan_heartbeat_test()`)
 
