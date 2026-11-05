@@ -78,14 +78,14 @@ extern void StartControlTask(void *argument) {
         break;
       
       case SYSTEM_STATE_CLEAR_ERRORS:
-        odrive_ClearErrors(1, raw_joints[HIP_INDEX].node_id);
-        odrive_ClearErrors(1, raw_joints[KNEE_INDEX].node_id);
+        odrive_ClearErrors(KNEE_INDEX, raw_joints);
+        odrive_ClearErrors(HIP_INDEX, raw_joints);
         sys_state = SYSTEM_STATE_ARM_MOTORS;
         break;
 
       case SYSTEM_STATE_ARM_MOTORS:
         for (int i = 0; i<NUM_JOINTS; i++){
-          odrive_SetAxisState(1, raw_joints[i].node_id, AXIS_STATE_CLOSED_LOOP_CONTROL);
+          odrive_SetAxisState(i, raw_joints, AXIS_STATE_CLOSED_LOOP_CONTROL);
         }
         sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
         break;
@@ -143,7 +143,7 @@ extern void StartControlTask(void *argument) {
       case SYSTEM_STATE_FAULT:
       default:
         for (int i = 0; i<NUM_JOINTS; i++){
-          odrive_SetAxisState(1, raw_joints[i].node_id, AXIS_STATE_IDLE);
+          odrive_SetAxisState(i, raw_joints, AXIS_STATE_IDLE);
         }
         break;
     }

@@ -46,16 +46,11 @@ void initialize_all_buses(){
 }
 
 
-void odrive_SetAxisState(uint8_t bus_num, uint8_t can_id, AxisState state){
-  if(bus_num == 1){
-    //TODO
-  }
-  else{
-    fast_printf("ERROR: UNSUPPORTED BUS NUMBER: %d\r\n", bus_num);
-  }
+void odrive_SetAxisState(uint8_t joint_index, JointRawFeedback_t *joints, AxisState state){
+  //TODO
 }
 
-void odrive_ClearErrors(uint8_t bus_num, uint8_t can_id){
-  
+void odrive_ClearErrors(uint8_t joint_index, JointRawFeedback_t *joints){
+  //TODO
 }
 
