@@ -21,7 +21,7 @@ typedef enum {
 
 typedef struct {
     float torque_limit;
-    uint8_t can_id;
+    uint8_t node_id;
     float motor_pos_rad;
     float motor_vel_rad;
     float motor_torque_est;
