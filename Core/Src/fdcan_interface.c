@@ -201,7 +201,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
     if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rx_hdr, rx_data) == HAL_OK) {
       
       if((rx_hdr.Identifier & (~((1U << 11) - 1))) != 0){
-        printf("CAN MSG ERR: UNKNOWN CAN ID: %d\r\n", rx_hdr.Identifier);
+        printf("CAN MSG ERR: UNKNOWN CAN ID: %lu\r\n", rx_hdr.Identifier);
       }
       uint32_t node_id = rx_hdr.Identifier >> 5;
       uint32_t cmd_id = rx_hdr.Identifier & 0b11111;
@@ -214,9 +214,10 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
           joint_index = HIP_INDEX;
           break;
         default:
-          printf("CAN MSG ERR: UNKNOWN NODE ID: %d\r\n", node_id);
-          break;
+          printf("CAN MSG ERR: UNKNOWN NODE ID: %lu\r\n", node_id);
+          return;
       }
+      odrive_process_rx_msg(joint_index, cmd_id, rx_data);
       
       // THIS IS SET UP TO ECHO BACK TO THE BUS
       // Copying message header for transmitting
@@ -240,4 +241,6 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
   }
 }
 
-
+void send_msg_canfd1(uint32_t can_id, uint8_t *data) {
+  // TODO
+}

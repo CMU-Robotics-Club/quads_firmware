@@ -41,3 +41,6 @@ typedef struct {
 
 extern volatile JointRawFeedback_t g_raw_joints[NUM_JOINTS];
 extern volatile JointCommand_t g_joint_command[NUM_JOINTS];
+
+void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data);
+void odrive_process_tx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data);

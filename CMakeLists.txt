@@ -49,6 +49,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Middlewares/Third_Party/SEGGER_RTT/SEGGER_RTT.c
     Core/Src/mcp2518fd.c
     Core/Src/fdcan_interface.c
+    Core/Src/joint_interface.c
+    Core/Src/control_task.c
 )
 
 # Add include paths

@@ -36,20 +36,24 @@ extern void ControlTask(void *argument) {
     switch (sys_state) {
       case SYSTEM_STATE_INIT:
         for(int i = 0; i<NUM_JOINTS; i++){
-          JointRawFeedback_t joint = raw_joints[i];
-          joint.joint_initialized = false;
-          joint.motor_pos_rad = 0.0;
-          joint.invert_direction = false;
-          joint.last_msg_tick = 0;
+          JointRawFeedback_t *joint = &raw_joints[i];
+          joint->joint_initialized = false;
+          joint->motor_pos_rad = 0.0f;
+          joint->invert_direction = false;
+          joint->last_msg_tick = 0;
           if(i == HIP_INDEX){
-            joint.can_id = HIP_NODE_ID;
+            joint->can_id = HIP_NODE_ID;
+          }
+          else if(i == KNEE_INDEX){
+            joint->can_id = KNEE_NODE_ID;
           }
           else{
-            joint.can_id = KNEE_NODE_ID;
+            printf("BAD UNKNOWN INDEX: %d\n\r", i);
+            break;
           }
         }
         taskENTER_CRITICAL();
-        memcpy((void*) g_raw_joints, raw_joints, sizeof(raw_joints));
+        memcpy((void*) g_raw_joints, raw_joints, sizeof(g_raw_joints));
         taskEXIT_CRITICAL();
         sys_state = SYSTEM_STATE_WAIT_CAN;
         break;
@@ -88,7 +92,7 @@ extern void ControlTask(void *argument) {
         for (int i = 0; i<NUM_JOINTS; i++){
           // Check that they aren't uninitialized
           float pos = raw_joints[i].motor_pos_rad;
-          if(pos!=0.0){
+          if(pos!=0.0f){
             raw_joints[i].initial_pos_offset = pos;
           }
           else{
