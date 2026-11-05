@@ -3,7 +3,6 @@
 #include "task.h"
 #include <stdio.h>
 #include "joint_interface.h"
-#include "odrive.h"
 #include <string.h>
 
 // volatile since ISRs can overwrite these vars
@@ -55,6 +54,7 @@ extern void ControlTask(void *argument) {
         taskENTER_CRITICAL();
         memcpy((void*) g_raw_joints, raw_joints, sizeof(g_raw_joints));
         taskEXIT_CRITICAL();
+        initialize_all_buses();
         sys_state = SYSTEM_STATE_WAIT_CAN;
         break;
 
@@ -70,6 +70,7 @@ extern void ControlTask(void *argument) {
         if(done){
           sys_state = SYSTEM_STATE_CLEAR_ERRORS;
         }
+        break;
       
       case SYSTEM_STATE_CLEAR_ERRORS:
         ODrive_ClearErrors(1, raw_joints[HIP_INDEX].can_id);
@@ -98,10 +99,10 @@ extern void ControlTask(void *argument) {
           else{
             all_calibrated = false;
           }
+          taskENTER_CRITICAL();
+          g_raw_joints[i].initial_pos_offset = raw_joints[i].initial_pos_offset;
+          taskEXIT_CRITICAL();
         }
-        taskENTER_CRITICAL();
-        memcpy((void*) g_raw_joints, raw_joints, sizeof(raw_joints));
-        taskEXIT_CRITICAL();
         sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
         if(all_calibrated){
           sys_state = SYSTEM_STATE_RUNNING;
@@ -124,9 +125,9 @@ extern void ControlTask(void *argument) {
         }
 
         float hip_pos = raw_joints[HIP_INDEX].motor_pos_rad / 14.0f;
-        float hip_vel = raw_joints[HIP_INDEX].motor_pos_rad / 14.0f;
+        float hip_vel = raw_joints[HIP_INDEX].motor_vel_rad / 14.0f;
         float knee_pos = raw_joints[KNEE_INDEX].motor_pos_rad / 14.0f;
-        float knee_vel = raw_joints[KNEE_INDEX].motor_pos_rad / 14.0f;
+        float knee_vel = raw_joints[KNEE_INDEX].motor_vel_rad / 14.0f;
         printf("hip_pos: %f\r\n", hip_pos);
         printf("hip_vel: %f\r\n", hip_vel);
         printf("knee_pos: %f\r\n", knee_pos);

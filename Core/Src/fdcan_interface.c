@@ -11,6 +11,7 @@
 
 #include "fdcan.h"
 #include "joint_interface.h"
+#include "main.h"
 
 #define WAIT_MS 10
 
@@ -151,13 +152,13 @@ int fdcan_loopback_test(void)
     return fails;
 }
 
-int fdcan_echo_test(void)
+int initialize_CAN_buses(void)
 {
   const char *name = "FDCAN1";
   FDCAN_HandleTypeDef *h = &hfdcan1;
   HAL_StatusTypeDef st;
 
-  printf("STARTING THE FDCAN ECHO");
+  printf("STARTING THE FDCAN ECHO\r\n");
 
   /* Set to normal physical bus mode */
   st = set_mode(h, FDCAN_MODE_NORMAL);
@@ -205,6 +206,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
       }
       uint32_t node_id = rx_hdr.Identifier >> 5;
       uint32_t cmd_id = rx_hdr.Identifier & 0b11111;
+      uint32_t data_length = rx_hdr.DataLength >> 16;
       uint8_t joint_index;
       switch (node_id) {
         case KNEE_NODE_ID:
@@ -217,7 +219,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
           printf("CAN MSG ERR: UNKNOWN NODE ID: %lu\r\n", node_id);
           return;
       }
-      odrive_process_rx_msg(joint_index, cmd_id, rx_data);
+      odrive_process_rx_msg(joint_index, cmd_id, rx_data, data_length);
       
       // THIS IS SET UP TO ECHO BACK TO THE BUS
       // Copying message header for transmitting
@@ -241,6 +243,36 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
   }
 }
 
-void send_msg_canfd1(uint32_t can_id, uint8_t *data) {
+static const uint32_t DLC_Lookup[9] = {
+    FDCAN_DLC_BYTES_0,
+    FDCAN_DLC_BYTES_1,
+    FDCAN_DLC_BYTES_2,
+    FDCAN_DLC_BYTES_3,
+    FDCAN_DLC_BYTES_4,
+    FDCAN_DLC_BYTES_5,
+    FDCAN_DLC_BYTES_6,
+    FDCAN_DLC_BYTES_7,
+    FDCAN_DLC_BYTES_8
+};
+
+void send_msg_canfd1(uint32_t can_id, uint8_t *data, uint8_t length) {
   // TODO
+  // length is the length of data in bytes
+  if(length > 8){
+    printf("ERR: RECEIVED LENGTH: %d\r\n", length);
+  }
+  FDCAN_TxHeaderTypeDef tx_hdr = {
+      .Identifier          = can_id,
+      .IdType              = FDCAN_STANDARD_ID,
+      .TxFrameType         = FDCAN_DATA_FRAME,
+      .DataLength          = DLC_Lookup[length],
+      .ErrorStateIndicator = FDCAN_ESI_ACTIVE,
+      .BitRateSwitch       = FDCAN_BRS_OFF, // set to FDCAN_BRS_ON when we use canfd
+      .FDFormat            = FDCAN_CLASSIC_CAN, // TODO: CHANGE THIS WHEN WE SWITCH TO CANFD
+      .TxEventFifoControl  = FDCAN_NO_TX_EVENTS,
+      .MessageMarker       = 0,
+  };
+  // Add the message to the transmit fifo
+  HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &tx_hdr, data);
+  
 }

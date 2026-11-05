@@ -12,4 +12,5 @@
  * Returns the number of instances that failed (0 = all PASS). */
 int fdcan_loopback_test(void);
 int fdcan_echo_test(void);
-void send_msg_canfd1(uint32_t can_id, uint8_t *data);
+int initialize_CAN_buses(void);
+void send_msg_canfd1(uint32_t can_id, uint8_t *data, uint8_t length);

@@ -42,5 +42,14 @@ typedef struct {
 extern volatile JointRawFeedback_t g_raw_joints[NUM_JOINTS];
 extern volatile JointCommand_t g_joint_command[NUM_JOINTS];
 
-void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data);
-void odrive_process_tx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data);
+typedef enum {
+  AXIS_STATE_UNDEFINED = 0,
+  AXIS_STATE_IDLE = 1,
+  AXIS_STATE_CLOSED_LOOP_CONTROL = 8,
+} AxisState;
+
+void ODrive_SetAxisState(uint8_t bus_num, uint8_t can_id, AxisState state);
+void ODrive_ClearErrors(uint8_t bus_num, uint8_t can_id);
+void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, uint32_t length);
+void odrive_process_tx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, uint32_t length);
+void initialize_all_buses(void);
