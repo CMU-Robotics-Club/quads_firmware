@@ -48,8 +48,8 @@ typedef enum {
   AXIS_STATE_CLOSED_LOOP_CONTROL = 8,
 } AxisState;
 
-void ODrive_SetAxisState(uint8_t bus_num, uint8_t can_id, AxisState state);
-void ODrive_ClearErrors(uint8_t bus_num, uint8_t can_id);
+void odrive_SetAxisState(uint8_t bus_num, uint8_t can_id, AxisState state);
+void odrive_ClearErrors(uint8_t bus_num, uint8_t can_id);
 void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, uint32_t length);
 void odrive_process_tx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, uint32_t length);
 void initialize_all_buses(void);

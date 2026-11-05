@@ -1,5 +1,6 @@
 #include "joint_interface.h"
 #include "fdcan_interface.h"
+#include "rtt_log.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include <stdio.h>
@@ -10,8 +11,11 @@ void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
   // Only used by fdcan_interface
   switch (cmd_id) {
     case 0x001:
-      printf("Received heartbeat for joint %d\n\r", joint_index);
+      fast_printf("Received heartbeat for joint %d\n\r", joint_index);
+      UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
       g_raw_joints[joint_index].last_msg_tick = xTaskGetTickCountFromISR();
+      g_raw_joints[joint_index].joint_initialized = true;
+      taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
       return;
     default:
       break;
@@ -29,7 +33,7 @@ void odrive_process_tx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
       node_id = HIP_NODE_ID;
       break;
     default:
-      printf("UNKNOWN JOINT: %d\r\n", joint_index);
+      fast_printf("UNKNOWN JOINT: %d\r\n", joint_index);
       return;
   }
   uint32_t can_id = node_id<<5 | cmd_id;
@@ -47,11 +51,11 @@ void odrive_SetAxisState(uint8_t bus_num, uint8_t can_id, AxisState state){
     //TODO
   }
   else{
-    printf("ERROR: UNSUPPORTED BUS NUMBER: %d\r\n", bus_num);
+    fast_printf("ERROR: UNSUPPORTED BUS NUMBER: %d\r\n", bus_num);
   }
 }
 
-void ODrive_ClearErrors(uint8_t bus_num, uint8_t can_id){
+void odrive_ClearErrors(uint8_t bus_num, uint8_t can_id){
   
 }
 

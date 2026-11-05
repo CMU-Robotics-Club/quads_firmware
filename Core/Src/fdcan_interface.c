@@ -7,6 +7,7 @@
 #include "fdcan_interface.h"
 
 #include <stdio.h>
+#include "rtt_log.h"
 #include <string.h>
 
 #include "fdcan.h"
@@ -100,20 +101,20 @@ static int test_one(FDCAN_HandleTypeDef *h, const char *name)
     const uint8_t tx_data[8] = {1, 2, 3, 4, 5, 6, 7, 8};
 
     HAL_StatusTypeDef st = set_mode(h, FDCAN_MODE_INTERNAL_LOOPBACK);
-    printf("%s loopback mode: %s\r\n", name, status_str(st));
+    fast_printf("%s loopback mode: %s\r\n", name, status_str(st));
     if (st == HAL_OK) {
         st = accept_all(h);
-        printf("%s filter: %s\r\n", name, status_str(st));
+        fast_printf("%s filter: %s\r\n", name, status_str(st));
     }
     int started = 0;
     if (st == HAL_OK) {
         st = HAL_FDCAN_Start(h);
-        printf("%s start: %s\r\n", name, status_str(st));
+        fast_printf("%s start: %s\r\n", name, status_str(st));
         started = st == HAL_OK;
     }
     if (st == HAL_OK) {
         st = send(h, tx_id, tx_data);
-        printf("%s send: %s\r\n", name, status_str(st));
+        fast_printf("%s send: %s\r\n", name, status_str(st));
     }
 
     int fail = 1;
@@ -121,9 +122,9 @@ static int test_one(FDCAN_HandleTypeDef *h, const char *name)
         FDCAN_RxHeaderTypeDef rx;
         uint8_t rx_data[8];
         st = receive(h, &rx, rx_data, WAIT_MS);
-        printf("%s receive: %s\r\n", name, status_str(st));
+        fast_printf("%s receive: %s\r\n", name, status_str(st));
         if (st == HAL_OK) {
-            printf("  id 0x%03lX len %lu data %02X %02X %02X %02X %02X %02X %02X %02X\r\n",
+            fast_printf("  id 0x%03lX len %lu data %02X %02X %02X %02X %02X %02X %02X %02X\r\n",
                    (unsigned long)rx.Identifier, (unsigned long)rx.DataLength,
                    rx_data[0], rx_data[1], rx_data[2], rx_data[3],
                    rx_data[4], rx_data[5], rx_data[6], rx_data[7]);
@@ -135,10 +136,10 @@ static int test_one(FDCAN_HandleTypeDef *h, const char *name)
     /* Always restore, even after a failure. A failed restore is a FAIL: later CAN code would
      * find the controller in the wrong state. */
     st = restore(h, started);
-    printf("%s restore: %s\r\n", name, status_str(st));
+    fast_printf("%s restore: %s\r\n", name, status_str(st));
     if (st != HAL_OK) fail = 1;
 
-    printf("%s loopback test: %s\r\n", name, fail ? "FAIL" : "PASS");
+    fast_printf("%s loopback test: %s\r\n", name, fail ? "FAIL" : "PASS");
     return fail;
 }
 
@@ -148,7 +149,7 @@ int fdcan_loopback_test(void)
     fails += test_one(&hfdcan1, "FDCAN1");
     fails += test_one(&hfdcan2, "FDCAN2");
     fails += test_one(&hfdcan3, "FDCAN3");
-    printf("FDCAN loopback: %d/3 PASS\r\n", 3 - fails);
+    fast_printf("FDCAN loopback: %d/3 PASS\r\n", 3 - fails);
     return fails;
 }
 
@@ -158,33 +159,31 @@ int initialize_CAN_buses(void)
   FDCAN_HandleTypeDef *h = &hfdcan1;
   HAL_StatusTypeDef st;
 
-  printf("STARTING THE FDCAN ECHO\r\n");
-
   /* Set to normal physical bus mode */
   st = set_mode(h, FDCAN_MODE_NORMAL);
-  printf("%s mode normal: %s\r\n", name, status_str(st));
+  fast_printf("%s mode normal: %s\r\n", name, status_str(st));
   if (st != HAL_OK) return 1;
 
   /* Configure filter to accept standard frames into FIFO0 */
   st = accept_all(h);
-  printf("%s filter: %s\r\n", name, status_str(st));
+  fast_printf("%s filter: %s\r\n", name, status_str(st));
   if (st != HAL_OK) return 1;
 
   /* Enable the RX FIFO0 New Message interrupt notification */
   st = HAL_FDCAN_ConfigInterruptLines(h, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, FDCAN_INTERRUPT_LINE0);
   if (st != HAL_OK) return 1;
   st = HAL_FDCAN_ActivateNotification(h, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
-  printf("%s activate notification: %s\r\n", name, status_str(st));
+  fast_printf("%s activate notification: %s\r\n", name, status_str(st));
   if (st != HAL_OK) return 1;
 
   
 
   /* Start the peripheral */
   st = HAL_FDCAN_Start(h);
-  printf("%s start: %s\r\n", name, status_str(st));
+  fast_printf("%s start: %s\r\n", name, status_str(st));
   if (st != HAL_OK) return 1;
 
-  printf("done with setup of %s\r\n", name);
+  fast_printf("done with setup of %s\r\n", name);
 
   return 0;
 }
@@ -192,7 +191,7 @@ int initialize_CAN_buses(void)
 // Callback 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
-  printf("CAN msg received!\r\n");
+  fast_printf("CAN msg received!\r\n");
   if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0) {
     // new message arrived
     FDCAN_RxHeaderTypeDef rx_hdr;
@@ -202,7 +201,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
     if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rx_hdr, rx_data) == HAL_OK) {
       
       if((rx_hdr.Identifier & (~((1U << 11) - 1))) != 0){
-        printf("CAN MSG ERR: UNKNOWN CAN ID: %lu\r\n", rx_hdr.Identifier);
+        fast_printf("CAN MSG ERR: UNKNOWN CAN ID: %lu\r\n", rx_hdr.Identifier);
       }
       uint32_t node_id = rx_hdr.Identifier >> 5;
       uint32_t cmd_id = rx_hdr.Identifier & 0b11111;
@@ -216,7 +215,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
           joint_index = HIP_INDEX;
           break;
         default:
-          printf("CAN MSG ERR: UNKNOWN NODE ID: %lu\r\n", node_id);
+          fast_printf("CAN MSG ERR: UNKNOWN NODE ID: %lu\r\n", node_id);
           return;
       }
       odrive_process_rx_msg(joint_index, cmd_id, rx_data, data_length);
@@ -238,7 +237,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
       // HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &tx_hdr, rx_data);
     }
     else {
-      printf("Failed here idk why this would happen gl debugging this if you see this");
+      fast_printf("Failed here idk why this would happen gl debugging this if you see this");
     }
   }
 }
@@ -259,7 +258,7 @@ void send_msg_canfd1(uint32_t can_id, uint8_t *data, uint8_t length) {
   // TODO
   // length is the length of data in bytes
   if(length > 8){
-    printf("ERR: RECEIVED LENGTH: %d\r\n", length);
+    fast_printf("ERR: RECEIVED LENGTH: %d\r\n", length);
   }
   FDCAN_TxHeaderTypeDef tx_hdr = {
       .Identifier          = can_id,

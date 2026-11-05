@@ -21,6 +21,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "main.h"
+#include "FreeRTOS.h"
 #include "cmsis_os2.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -56,6 +57,13 @@ const osThreadAttr_t defaultTask_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for ControlTask */
+osThreadId_t ControlTaskHandle;
+const osThreadAttr_t ControlTask_attributes = {
+  .name = "ControlTask",
+  .stack_size = 4096 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -63,6 +71,7 @@ static void DWT_Init(void);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
+extern void StartControlTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -96,6 +105,9 @@ void MX_FREERTOS_Init(void) {
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
+  /* creation of ControlTask */
+  ControlTaskHandle = osThreadNew(StartControlTask, NULL, &ControlTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -120,20 +132,20 @@ void StartDefaultTask(void *argument)
   DWT_Init();
   // mcp_loopback_test(); /* MCP2518FD bring-up: runs once, prints results over RTT */
   // fdcan_loopback_test(); /* FDCAN1-3 bring-up: runs once, no transceiver needed */
-  initialize_CAN_buses();
+  // initialize_CAN_buses();
   for (;;)
   {
     HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
     osDelay(200);
 
-    uint32_t start_cycles = DWT->CYCCNT;
-    fast_printf("HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!2!!!!!!!!\r\n");
-    uint32_t elapsed_cycles = DWT->CYCCNT - start_cycles;
-    /* Convert outside timing; avoid requiring float printf support. */
-    uint64_t elapsed_ns = (uint64_t)elapsed_cycles * 1000000000ULL / SystemCoreClock;
-    fast_printf("time: %lu.%03lu us\r\n",
-                (unsigned long)(elapsed_ns / 1000U),
-                (unsigned long)(elapsed_ns % 1000U));
+    // uint32_t start_cycles = DWT->CYCCNT;
+    // fast_printf("HERE!!!!\r\n");
+    // uint32_t elapsed_cycles = DWT->CYCCNT - start_cycles;
+    // /* Convert outside timing; avoid requiring float printf support. */
+    // uint64_t elapsed_ns = (uint64_t)elapsed_cycles * 1000000000ULL / SystemCoreClock;
+    // fast_printf("time: %lu.%03lu us\r\n",
+    //             (unsigned long)(elapsed_ns / 1000U),
+    //             (unsigned long)(elapsed_ns % 1000U));
   }
   /* USER CODE END StartDefaultTask */
 }
