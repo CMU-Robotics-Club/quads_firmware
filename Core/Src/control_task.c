@@ -17,9 +17,12 @@ extern void StartControlTask(void *argument) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
   const TickType_t xFrequency = pdMS_TO_TICKS(1); // 1 ms period = 1 kHz
 
+  int loop_iter = 0;
+  
   fast_printf("Starting control task...\n\r");
 
   while(true){
+    loop_iter++;
     // continue;
     // next time this task is called is offsetted from the last wake time
     BaseType_t xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
@@ -64,6 +67,7 @@ extern void StartControlTask(void *argument) {
 
       case SYSTEM_STATE_WAIT_CAN:
         bool done = true;
+        fast_printf("%d\n\r", loop_iter);
         for (int i = 0; i<NUM_JOINTS; i++){
           if(raw_joints[i].joint_initialized == false){
             done=false;
@@ -72,7 +76,7 @@ extern void StartControlTask(void *argument) {
         }
         sys_state = SYSTEM_STATE_WAIT_CAN;
         if(done){
-          printf("All Joints initialized!");
+          fast_printf("All Joints initialized!");
           sys_state = SYSTEM_STATE_CLEAR_ERRORS;
         }
         break;
