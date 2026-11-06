@@ -17,6 +17,7 @@ extern void StartControlTask(void *argument) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
   const TickType_t xFrequency = pdMS_TO_TICKS(1); // 1 ms period = 1 kHz
 
+  static TickType_t last_action_tick = 0; // Used in some states to make sure we don't spam the bus with messages
   int loop_iter = 0;
   
   fast_printf("Starting control task...\n\r");
@@ -76,22 +77,56 @@ extern void StartControlTask(void *argument) {
         }
         sys_state = SYSTEM_STATE_WAIT_CAN;
         if(done){
-          fast_printf("All Joints initialized!");
+          fast_printf("All Joints initialized, clearing errors");
           sys_state = SYSTEM_STATE_CLEAR_ERRORS;
         }
         break;
       
       case SYSTEM_STATE_CLEAR_ERRORS:
-        odrive_ClearErrors(KNEE_INDEX, raw_joints);
-        odrive_ClearErrors(HIP_INDEX, raw_joints);
-        sys_state = SYSTEM_STATE_ARM_MOTORS;
+        if ((xTaskGetTickCount() - last_action_tick) >= pdMS_TO_TICKS(200)) {
+          // Runs every 200 ms
+          for (int i = 0; i<NUM_JOINTS; i++){
+            odrive_ClearErrors(i, raw_joints);
+          }
+          last_action_tick = xTaskGetTickCount();
+        }
+        done = true;
+        for (int i = 0; i<NUM_JOINTS; i++){
+          if(raw_joints[i].odrive_error != 0){
+            done=false;
+            fast_printf("Errors: %b\r\n", raw_joints[i].odrive_error);
+            break;
+          }
+        }
+        sys_state = SYSTEM_STATE_CLEAR_ERRORS;
+        if(done){
+          fast_printf("Cleared errors, arming motors");
+          sys_state = SYSTEM_STATE_ARM_MOTORS;
+          last_action_tick = 0; // reset for next state
+        }
         break;
 
       case SYSTEM_STATE_ARM_MOTORS:
-        for (int i = 0; i<NUM_JOINTS; i++){
-          odrive_SetAxisState(i, raw_joints, AXIS_STATE_CLOSED_LOOP_CONTROL);
+        if ((xTaskGetTickCount() - last_action_tick) >= pdMS_TO_TICKS(200)) {
+          // Runs every 200 ms
+          for (int i = 0; i<NUM_JOINTS; i++){
+            odrive_SetAxisState(i, raw_joints, AXIS_STATE_CLOSED_LOOP_CONTROL);
+          }
+          last_action_tick = xTaskGetTickCount();
         }
-        sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
+        done = true;
+        for (int i = 0; i<NUM_JOINTS; i++){
+          if(raw_joints[i].odrive_error != 0 || raw_joints[i].axisState != AXIS_STATE_CLOSED_LOOP_CONTROL){
+            done=false;
+            break;
+          }
+        }
+        sys_state = SYSTEM_STATE_ARM_MOTORS;
+        if(done){
+          fast_printf("Armed motors, moving to calibrating offsets");
+          last_action_tick = 0;
+          sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
+        }
         break;
 
       case SYSTEM_STATE_CALIBRATE_OFFSETS:
@@ -114,6 +149,7 @@ extern void StartControlTask(void *argument) {
         }
         sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
         if(all_calibrated){
+          fast_printf("All calibrated, running loop");
           sys_state = SYSTEM_STATE_RUNNING;
         }
         break;
@@ -128,6 +164,11 @@ extern void StartControlTask(void *argument) {
           }
           if((uint32_t)xLastWakeTime > joint_command[i].last_msg_tick + 100){
             fast_printf("COMMAND TIMEOUT: JOINT %d\r\n", i);
+            sys_state = SYSTEM_STATE_FAULT;
+            break;
+          }
+          if(raw_joints[i].odrive_error != 0){
+            fast_printf("ERROR on joint %d: %b\r\n", i, raw_joints[i].odrive_error);
             sys_state = SYSTEM_STATE_FAULT;
             break;
           }

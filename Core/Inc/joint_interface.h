@@ -19,6 +19,12 @@ typedef enum {
     SYSTEM_STATE_FAULT
 } SystemState_t;
 
+typedef enum : uint8_t{
+  AXIS_STATE_UNDEFINED = 0,
+  AXIS_STATE_IDLE = 1,
+  AXIS_STATE_CLOSED_LOOP_CONTROL = 8,
+} AxisState;
+
 typedef struct {
     float torque_limit;
     uint8_t node_id;
@@ -29,6 +35,7 @@ typedef struct {
     uint32_t odrive_error;
     uint8_t odrive_state;
     uint32_t last_msg_tick; // For watchdog
+    AxisState axisState;
     bool joint_initialized;
     bool invert_direction;
 } JointRawFeedback_t;
@@ -41,12 +48,6 @@ typedef struct {
 
 extern volatile JointRawFeedback_t g_raw_joints[NUM_JOINTS];
 extern volatile JointCommand_t g_joint_command[NUM_JOINTS];
-
-typedef enum {
-  AXIS_STATE_UNDEFINED = 0,
-  AXIS_STATE_IDLE = 1,
-  AXIS_STATE_CLOSED_LOOP_CONTROL = 8,
-} AxisState;
 
 void odrive_SetAxisState(uint8_t joint_index, JointRawFeedback_t *joints, AxisState state);
 void odrive_ClearErrors(uint8_t joint_index, JointRawFeedback_t *joints);

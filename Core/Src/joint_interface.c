@@ -15,6 +15,8 @@ void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
       UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
       g_raw_joints[joint_index].last_msg_tick = xTaskGetTickCountFromISR();
       g_raw_joints[joint_index].joint_initialized = true;
+      g_raw_joints[joint_index].odrive_error = (uint32_t) data;
+      g_raw_joints[joint_index].axisState = data[4];
       taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
       return;
     default:
@@ -45,12 +47,15 @@ void initialize_all_buses(){
   // In the future, we would initialize the SPI bus as well
 }
 
-
 void odrive_SetAxisState(uint8_t joint_index, JointRawFeedback_t *joints, AxisState state){
-  //TODO
+  uint32_t cmd = 0x07;
+  uint8_t data[1] = {state};
+  odrive_process_tx_msg(joint_index, cmd, data, 1);
 }
 
 void odrive_ClearErrors(uint8_t joint_index, JointRawFeedback_t *joints){
-  //TODO
+  uint32_t cmd = 0x07;
+  uint8_t data[1] = {1}; // 1 should flash the led on the odrive
+  odrive_process_tx_msg(joint_index, cmd, data, 1);
 }
 
