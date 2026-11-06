@@ -4,6 +4,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include <stdio.h>
+#include <string.h>
 
 void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, uint32_t length){
   // data should be 8 long
@@ -15,7 +16,7 @@ void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
       UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
       g_raw_joints[joint_index].last_msg_tick = xTaskGetTickCountFromISR();
       g_raw_joints[joint_index].joint_initialized = true;
-      g_raw_joints[joint_index].odrive_error = (uint32_t) data;
+      memcpy((void*)&g_raw_joints[joint_index].odrive_error, data, sizeof(uint32_t));
       g_raw_joints[joint_index].axisState = data[4];
       taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
       return;
@@ -49,12 +50,12 @@ void initialize_all_buses(){
 
 void odrive_SetAxisState(uint8_t joint_index, JointRawFeedback_t *joints, AxisState state){
   uint32_t cmd = 0x07;
-  uint8_t data[1] = {state};
-  odrive_process_tx_msg(joint_index, cmd, data, 1);
+  uint32_t state_val = (uint32_t)state;
+  odrive_process_tx_msg(joint_index, cmd, (uint8_t*) &state_val, 4);
 }
 
 void odrive_ClearErrors(uint8_t joint_index, JointRawFeedback_t *joints){
-  uint32_t cmd = 0x07;
+  uint32_t cmd = 0x18;
   uint8_t data[1] = {1}; // 1 should flash the led on the odrive
   odrive_process_tx_msg(joint_index, cmd, data, 1);
 }

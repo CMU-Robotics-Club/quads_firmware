@@ -19,6 +19,7 @@ typedef enum {
     SYSTEM_STATE_FAULT
 } SystemState_t;
 
+// enum vals need to match odrive's axis state codes
 typedef enum : uint8_t{
   AXIS_STATE_UNDEFINED = 0,
   AXIS_STATE_IDLE = 1,
