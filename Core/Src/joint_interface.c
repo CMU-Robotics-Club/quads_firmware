@@ -11,6 +11,7 @@ void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
   // WE SHOULD BE IN THE ISR CONTEXT HERE
   // Only used by fdcan_interface
   if (data == NULL || length < 8) {
+    fast_printf("LENGTH: %d\r\n", length);
     fast_printf("ERROR: BAD DATA\r\n");
     return;
   }
@@ -22,7 +23,7 @@ void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
   UBaseType_t uxSavedInterruptStatus;
   switch (cmd_id) {
     case 0x001:
-      fast_printf("Received heartbeat for joint %d\n\r", joint_index);
+      // fast_printf("Received heartbeat for joint %d\n\r", joint_index);
       uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
       g_raw_joints[joint_index].last_msg_tick = xTaskGetTickCountFromISR();
       g_raw_joints[joint_index].joint_initialized = true;
@@ -31,6 +32,9 @@ void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
       taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
       break;
     case 0x09:
+      // fast_printf("RECEIVED ENCODERS JOINT %d\r\n", joint_index);
+      fast_printf("POS: %d\r\n", *(uint32_t*)data);
+      // Encoder positions
       uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
       memcpy((void*)&g_raw_joints[joint_index].motor_pos_turns, data, 4);
       memcpy((void*)&g_raw_joints[joint_index].motor_vel_turns, &data[4], 4);

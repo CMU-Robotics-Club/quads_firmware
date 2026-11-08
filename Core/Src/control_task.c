@@ -68,7 +68,10 @@ extern void StartControlTask(void *argument) {
 
       case SYSTEM_STATE_WAIT_CAN:
         bool done = true;
-        // fast_printf("%d\n\r", loop_iter);
+        // uint32_t pos = (uint32_t) raw_joints[1].motor_pos_turns;
+        // fast_printf("pos: %lu.%03lu us\r\n",
+        //             (unsigned long)(pos / 1000U),
+        //             (unsigned long)(pos % 1000U));
         for (int i = 0; i<NUM_JOINTS; i++){
           if(raw_joints[i].joint_initialized == false){
             done=false;

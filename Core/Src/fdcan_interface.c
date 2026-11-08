@@ -191,7 +191,7 @@ int initialize_CAN_buses(void)
 // Callback 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
-  fast_printf("CAN msg received!\r\n");
+  // fast_printf("CAN msg received!\r\n");
   if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0) {
     // new message arrived
     FDCAN_RxHeaderTypeDef rx_hdr;
@@ -203,9 +203,11 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
       if((rx_hdr.Identifier & (~((1U << 11) - 1))) != 0){
         fast_printf("CAN MSG ERR: UNKNOWN CAN ID: %lu\r\n", rx_hdr.Identifier);
       }
+      // fast_printf(" %x \r\n", rx_hdr.Identifier);
       uint32_t node_id = rx_hdr.Identifier >> 5;
+      // fast_printf("NODE ID: %d\n\r", node_id);
       uint32_t cmd_id = rx_hdr.Identifier & 0b11111;
-      uint32_t data_length = rx_hdr.DataLength >> 16;
+      uint32_t data_length = rx_hdr.DataLength;
       uint8_t joint_index;
       switch (node_id) {
         case KNEE_NODE_ID:
