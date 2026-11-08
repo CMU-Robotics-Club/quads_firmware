@@ -3,8 +3,8 @@
 #include <stdbool.h>
 
 #define NUM_JOINTS 2 // 0: Hip, 1: Knee
-#define KNEE_INDEX 1
-#define HIP_INDEX  0
+#define KNEE_INDEX 0
+#define HIP_INDEX  1
 #define KNEE_NODE_ID 0 // TODO: Match the real one
 #define HIP_NODE_ID 1
 
@@ -29,8 +29,8 @@ typedef enum : uint8_t{
 typedef struct {
     float torque_limit;
     uint8_t node_id;
-    float motor_pos_rad;
-    float motor_vel_rad;
+    float motor_pos_turns;
+    float motor_vel_turns;
     float motor_torque_est;
     float initial_pos_offset;
     uint32_t odrive_error;

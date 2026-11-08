@@ -10,16 +10,32 @@ void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
   // data should be 8 long
   // WE SHOULD BE IN THE ISR CONTEXT HERE
   // Only used by fdcan_interface
+  if (data == NULL || length < 8) {
+    fast_printf("ERROR: BAD DATA\r\n");
+    return;
+  }
+  if (joint_index >= NUM_JOINTS) {
+    fast_printf("ERROR: RECEIVED CAN MESSAGE WITH OOB INDEX: %d\r\n", joint_index);
+    return;
+  }
+
+  UBaseType_t uxSavedInterruptStatus;
   switch (cmd_id) {
     case 0x001:
       fast_printf("Received heartbeat for joint %d\n\r", joint_index);
-      UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+      uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
       g_raw_joints[joint_index].last_msg_tick = xTaskGetTickCountFromISR();
       g_raw_joints[joint_index].joint_initialized = true;
       memcpy((void*)&g_raw_joints[joint_index].odrive_error, data, sizeof(uint32_t));
       g_raw_joints[joint_index].axisState = data[4];
       taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
-      return;
+      break;
+    case 0x09:
+      uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+      memcpy((void*)&g_raw_joints[joint_index].motor_pos_turns, data, 4);
+      memcpy((void*)&g_raw_joints[joint_index].motor_vel_turns, &data[4], 4);
+      taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+      break;
     default:
       break;
   }
@@ -39,7 +55,7 @@ void odrive_process_tx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
       fast_printf("UNKNOWN JOINT: %d\r\n", joint_index);
       return;
   }
-  uint32_t can_id = node_id<<5 | cmd_id;
+  uint32_t can_id = (node_id << 5) | (cmd_id & 0x1F);
   send_msg_canfd1(can_id, data, length);
 }
 

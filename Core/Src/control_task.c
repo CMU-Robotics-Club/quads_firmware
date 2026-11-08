@@ -45,7 +45,7 @@ extern void StartControlTask(void *argument) {
         for(int i = 0; i<NUM_JOINTS; i++){
           JointRawFeedback_t *joint = &raw_joints[i];
           joint->joint_initialized = false;
-          joint->motor_pos_rad = 0.0f;
+          joint->motor_pos_turns = 0.0f;
           joint->invert_direction = false;
           joint->last_msg_tick = 0;
           if(i == HIP_INDEX){
@@ -68,7 +68,7 @@ extern void StartControlTask(void *argument) {
 
       case SYSTEM_STATE_WAIT_CAN:
         bool done = true;
-        fast_printf("%d\n\r", loop_iter);
+        // fast_printf("%d\n\r", loop_iter);
         for (int i = 0; i<NUM_JOINTS; i++){
           if(raw_joints[i].joint_initialized == false){
             done=false;
@@ -94,7 +94,7 @@ extern void StartControlTask(void *argument) {
         for (int i = 0; i<NUM_JOINTS; i++){
           if(raw_joints[i].odrive_error != 0){
             done=false;
-            fast_printf("Errors: %b\r\n", raw_joints[i].odrive_error);
+            fast_printf("Errors: %b\r\n", (unsigned int)raw_joints[i].odrive_error);
             break;
           }
         }
@@ -136,7 +136,7 @@ extern void StartControlTask(void *argument) {
         bool all_calibrated = true;
         for (int i = 0; i<NUM_JOINTS; i++){
           // Check that they aren't uninitialized
-          float pos = raw_joints[i].motor_pos_rad;
+          float pos = raw_joints[i].motor_pos_turns;
           if(pos!=0.0f){
             raw_joints[i].initial_pos_offset = pos;
           }
@@ -168,16 +168,16 @@ extern void StartControlTask(void *argument) {
             break;
           }
           if(raw_joints[i].odrive_error != 0){
-            fast_printf("ERROR on joint %d: %b\r\n", i, raw_joints[i].odrive_error);
+            fast_printf("ERROR on joint %d: %b\r\n", i, (unsigned int) raw_joints[i].odrive_error);
             sys_state = SYSTEM_STATE_FAULT;
             break;
           }
         }
 
-        float hip_pos = raw_joints[HIP_INDEX].motor_pos_rad / 14.0f;
-        float hip_vel = raw_joints[HIP_INDEX].motor_vel_rad / 14.0f;
-        float knee_pos = raw_joints[KNEE_INDEX].motor_pos_rad / 14.0f;
-        float knee_vel = raw_joints[KNEE_INDEX].motor_vel_rad / 14.0f;
+        float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns / 14.0f;
+        float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns / 14.0f;
+        float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns / 14.0f;
+        float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns / 14.0f;
         fast_printf("hip_pos: %f\r\n", hip_pos);
         fast_printf("hip_vel: %f\r\n", hip_vel);
         fast_printf("knee_pos: %f\r\n", knee_pos);
