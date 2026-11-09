@@ -30,13 +30,16 @@ void odrive_process_rx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, 
       memcpy((void*)&g_raw_joints[joint_index].odrive_error, data, sizeof(uint32_t));
       g_raw_joints[joint_index].axisState = data[4];
       taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+      // uint8_t procedure_result = data[5];
+      // fast_printf("State: %d, Procedure Result: %d\r\n", data[4], procedure_result);
       break;
     case 0x09:
       // fast_printf("RECEIVED ENCODERS JOINT %d\r\n", joint_index);
-      fast_printf("POS: %d\r\n", *(uint32_t*)data);
+      // fast_printf("POS: %d\r\n", *(uint32_t*)data);
       // Encoder positions
       uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
       memcpy((void*)&g_raw_joints[joint_index].motor_pos_turns, data, 4);
+      g_raw_joints[joint_index].last_msg_tick = xTaskGetTickCountFromISR();
       memcpy((void*)&g_raw_joints[joint_index].motor_vel_turns, &data[4], 4);
       taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
       break;

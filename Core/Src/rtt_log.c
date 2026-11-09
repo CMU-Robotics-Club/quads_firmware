@@ -1,4 +1,5 @@
 #include "rtt_log.h"
+#include <math.h>
 #include "main.h"
 #include "cmsis_os2.h"
 #include "SEGGER_RTT.h"
@@ -283,4 +284,31 @@ void rtt_log_profile_task(void *argument)
     rtt_log_profile_once();
     osDelay(2000);
   }
+}
+
+// Printing float
+void print_float(const char *name, float val) {
+    // Check for NaN or Inf (ODrive can report NaN if uncalibrated)
+    if (isnan(val)) {
+        fast_printf("%s: NaN\r\n", name);
+        return;
+    }
+    if (isinf(val)) {
+        fast_printf("%s: %sInf\r\n", name, (val < 0) ? "-" : "");
+        return;
+    }
+
+    const char *sign = "";
+    if (val < 0.0f) {
+        sign = "-";
+        val = -val; // Make positive for integer conversion
+    }
+
+    // Add 0.0005 for proper 3-decimal rounding
+    val += 0.0005f;
+
+    long int_part = (long)val;
+    long frac_part = (long)((val - (float)int_part) * 1000.0f);
+
+    fast_printf("%s: %s%ld.%03ld\r\n", name, sign, int_part, frac_part);
 }

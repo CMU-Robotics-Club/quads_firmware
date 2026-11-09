@@ -6,7 +6,7 @@
 #define KNEE_INDEX 0
 #define HIP_INDEX  1
 #define KNEE_NODE_ID 0 // TODO: Match the real one
-#define HIP_NODE_ID 2
+#define HIP_NODE_ID 1
 
 // Current state
 typedef enum {

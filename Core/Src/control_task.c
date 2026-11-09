@@ -80,7 +80,7 @@ extern void StartControlTask(void *argument) {
         }
         sys_state = SYSTEM_STATE_WAIT_CAN;
         if(done){
-          fast_printf("All Joints initialized, clearing errors");
+          fast_printf("All Joints initialized, clearing errors\r\n");
           sys_state = SYSTEM_STATE_CLEAR_ERRORS;
         }
         break;
@@ -97,36 +97,41 @@ extern void StartControlTask(void *argument) {
         for (int i = 0; i<NUM_JOINTS; i++){
           if(raw_joints[i].odrive_error != 0){
             done=false;
-            fast_printf("Errors: %b\r\n", (unsigned int)raw_joints[i].odrive_error);
+            // fast_printf("Errors: %b\r\n", (unsigned int)raw_joints[i].odrive_error);
             break;
           }
         }
         sys_state = SYSTEM_STATE_CLEAR_ERRORS;
         if(done){
-          fast_printf("Cleared errors, arming motors");
+          fast_printf("Cleared errors, arming motors\r\n");
           sys_state = SYSTEM_STATE_ARM_MOTORS;
           last_action_tick = 0; // reset for next state
         }
         break;
 
       case SYSTEM_STATE_ARM_MOTORS:
-        if ((xTaskGetTickCount() - last_action_tick) >= pdMS_TO_TICKS(200)) {
+        if ((xTaskGetTickCount() - last_action_tick) >= pdMS_TO_TICKS(1000)) {
           // Runs every 200 ms
           for (int i = 0; i<NUM_JOINTS; i++){
+            fast_printf("Attempting Arming motors...\r\n");
             odrive_SetAxisState(i, raw_joints, AXIS_STATE_CLOSED_LOOP_CONTROL);
           }
           last_action_tick = xTaskGetTickCount();
         }
         done = true;
         for (int i = 0; i<NUM_JOINTS; i++){
+          if(raw_joints[i].odrive_error != 0){
+            fast_printf("ODRIVE ERROR JOINT %d: %b\r\n", i, raw_joints[i].odrive_error);
+          }
           if(raw_joints[i].odrive_error != 0 || raw_joints[i].axisState != AXIS_STATE_CLOSED_LOOP_CONTROL){
+            // fast_printf("Axis state: %d\r\n", raw_joints[i].axisState);
             done=false;
             break;
           }
         }
         sys_state = SYSTEM_STATE_ARM_MOTORS;
         if(done){
-          fast_printf("Armed motors, moving to calibrating offsets");
+          fast_printf("Armed motors, moving to calibrating offsets\r\n");
           last_action_tick = 0;
           sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
         }
@@ -152,39 +157,46 @@ extern void StartControlTask(void *argument) {
         }
         sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
         if(all_calibrated){
-          fast_printf("All calibrated, running loop");
+          fast_printf("All calibrated, running loop\r\n");
           sys_state = SYSTEM_STATE_RUNNING;
         }
         break;
 
       case SYSTEM_STATE_RUNNING: {
         for(int i = 0; i<NUM_JOINTS; i++){
-          // check 10 ticks
-          if((uint32_t)xLastWakeTime > raw_joints[i].last_msg_tick + 5){
+          // check timeouts
+          if((uint32_t)xLastWakeTime > raw_joints[i].last_msg_tick + pdMS_TO_TICKS(20)){
             fast_printf("JOINT TIMEOUT: JOINT %d\r\n", i);
+            fast_printf("Time since last is %d\r\n", xLastWakeTime - raw_joints[i].last_msg_tick);
             sys_state = SYSTEM_STATE_FAULT;
             break;
           }
-          if((uint32_t)xLastWakeTime > joint_command[i].last_msg_tick + 100){
-            fast_printf("COMMAND TIMEOUT: JOINT %d\r\n", i);
-            sys_state = SYSTEM_STATE_FAULT;
-            break;
-          }
+          // if((uint32_t)xLastWakeTime > joint_command[i].last_msg_tick + pdMS_TO_TICKS(20)){
+          //   fast_printf("COMMAND TIMEOUT: JOINT %d\r\n", i);
+          //   sys_state = SYSTEM_STATE_FAULT;
+          //   break;
+          // }
           if(raw_joints[i].odrive_error != 0){
-            fast_printf("ERROR on joint %d: %b\r\n", i, (unsigned int) raw_joints[i].odrive_error);
+            fast_printf("ERROR on joint %d: %d\r\n", i, (unsigned int) raw_joints[i].odrive_error);
             sys_state = SYSTEM_STATE_FAULT;
             break;
           }
         }
 
-        float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns / 14.0f;
-        float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns / 14.0f;
-        float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns / 14.0f;
-        float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns / 14.0f;
-        fast_printf("hip_pos: %f\r\n", hip_pos);
-        fast_printf("hip_vel: %f\r\n", hip_vel);
-        fast_printf("knee_pos: %f\r\n", knee_pos);
-        fast_printf("knee_vel: %f\r\n", knee_vel);
+        // float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns / 14.0f;
+        // float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns / 14.0f;
+        // float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns / 14.0f;
+        // float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns / 14.0f;
+        float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns;
+        float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns;
+        float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns;
+        float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns;
+        if(loop_iter%100 == 0){
+          print_float("hip_pos:", hip_pos);
+          print_float("hip_vel:", hip_vel);
+          print_float("knee_pos:", knee_pos);
+          print_float("knee_vel:", knee_vel);
+        }
         break;
       }
 

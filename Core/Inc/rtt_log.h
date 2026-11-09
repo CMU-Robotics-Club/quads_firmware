@@ -65,5 +65,6 @@ void rtt_log_profile_once(void);
  * @param : argument - Unused.
  */
 void rtt_log_profile_task(void *argument);
+void print_float(const char *name, float val);
 
 #endif
