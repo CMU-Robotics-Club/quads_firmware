@@ -14,14 +14,6 @@ volatile JointRawFeedback_t g_raw_joints[NUM_JOINTS];
 volatile JointCommand_t g_joint_command[NUM_JOINTS];
 static SystemState_t sys_state = SYSTEM_STATE_INIT; // Current system state (see joint_interface.h)
 
-// Feedback older than this in RUNNING is a fault.
-// The dry run only sends zero torque, so it tolerates the ODrives' slow default message rates.
-#if PD_DRY_RUN
-#define FEEDBACK_TIMEOUT_MS 500
-#else
-#define FEEDBACK_TIMEOUT_MS 20
-#endif
-
 extern void StartControlTask(void *argument) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
   const TickType_t xFrequency = pdMS_TO_TICKS(1); // 1 ms period = 1 kHz
@@ -184,7 +176,7 @@ extern void StartControlTask(void *argument) {
       case SYSTEM_STATE_RUNNING: {
         for(int i = 0; i<NUM_JOINTS; i++){
           // check timeouts
-          if((uint32_t)xLastWakeTime > raw_joints[i].last_msg_tick + pdMS_TO_TICKS(FEEDBACK_TIMEOUT_MS)){
+          if((uint32_t)xLastWakeTime > raw_joints[i].last_msg_tick + pdMS_TO_TICKS(20)){
             fast_printf("JOINT TIMEOUT: JOINT %d\r\n", i);
             fast_printf("Time since last is %d\r\n", xLastWakeTime - raw_joints[i].last_msg_tick);
             sys_state = SYSTEM_STATE_FAULT;
