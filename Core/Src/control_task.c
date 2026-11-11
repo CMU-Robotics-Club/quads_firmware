@@ -15,7 +15,7 @@ volatile JointCommand_t g_joint_command[NUM_JOINTS];
 static SystemState_t sys_state = SYSTEM_STATE_INIT; // Current system state (see joint_interface.h)
 
 // Feedback older than this in RUNNING is a fault.
-// The dry run drives nothing, so it tolerates the ODrives' slow default message rates.
+// The dry run only sends zero torque, so it tolerates the ODrives' slow default message rates.
 #if PD_DRY_RUN
 #define FEEDBACK_TIMEOUT_MS 500
 #else
@@ -95,6 +95,7 @@ extern void StartControlTask(void *argument) {
         break;
       
       case SYSTEM_STATE_CLEAR_ERRORS:
+        joint_control_feed_watchdog();
         if ((xTaskGetTickCount() - last_action_tick) >= pdMS_TO_TICKS(200)) {
           // Runs every 200 ms
           for (int i = 0; i<NUM_JOINTS; i++){
@@ -113,7 +114,7 @@ extern void StartControlTask(void *argument) {
         sys_state = SYSTEM_STATE_CLEAR_ERRORS;
         if(done){
 #if PD_DRY_RUN
-          // Motors stay in IDLE: the PD torque is only computed and printed
+          // Motors stay in IDLE: the PD torque is only computed and printed (zero torque is sent)
           fast_printf("Cleared errors, PD dry run: not arming motors\r\n");
           sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
 #else
@@ -125,6 +126,7 @@ extern void StartControlTask(void *argument) {
         break;
 
       case SYSTEM_STATE_ARM_MOTORS:
+        joint_control_feed_watchdog();
         if ((xTaskGetTickCount() - last_action_tick) >= pdMS_TO_TICKS(1000)) {
           // Runs every 200 ms
           for (int i = 0; i<NUM_JOINTS; i++){
@@ -153,6 +155,7 @@ extern void StartControlTask(void *argument) {
         break;
 
       case SYSTEM_STATE_CALIBRATE_OFFSETS:
+        joint_control_feed_watchdog();
         // TODO: Ideally, we would wait until a usb command
         // is received that lets us know that the leg is ready for calibration
         

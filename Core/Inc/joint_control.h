@@ -7,7 +7,8 @@
 
 #include "joint_interface.h"
 
-/* 1: compute and print the PD torque but send nothing, and ControlTask does not arm the motors.
+/* 1: compute and print the PD torque but send only zero torque (to feed the ODrive watchdog),
+ *    and ControlTask does not arm the motors.
  * 0: ControlTask arms the motors and the torque is sent to the ODrives.
  * Keep 1 until signs, gear ratio and gains have been checked on the leg by hand. */
 #define PD_DRY_RUN 1
@@ -19,5 +20,10 @@ void joint_control_hold(const JointRawFeedback_t *joints);
 /* Call every control period in RUNNING with this period's feedback copy.
  * print: also log q, qd and tau of every joint this period. */
 void joint_control_step(const JointRawFeedback_t *joints, bool print);
+
+/* Send Set_Input_Torque(0) to every joint. Any Set_Input_* feeds the ODrive watchdog, also in
+ * IDLE, where an unfed watchdog raises WATCHDOG_TIMER_EXPIRED (seen on fw 0.6.11).
+ * Call every control period in the states between WAIT_CAN and RUNNING. */
+void joint_control_feed_watchdog(void);
 
 #endif /* JOINT_CONTROL_H */
