@@ -88,4 +88,11 @@ if __name__ == "__main__":
                         "tests/test_pd_controller.c", "Core/Src/pd_controller.c",
                         "-lm", "-o", str(binary)], cwd=ROOT, check=True)
         subprocess.run([str(binary)], check=True)
+
+        binary = Path(directory) / "test_joint_units"
+        subprocess.run(["cc", "-std=c11", "-Wall", "-Wextra", "-Werror",
+                        "-ICore/Inc",
+                        "tests/test_joint_units.c",
+                        "-lm", "-o", str(binary)], cwd=ROOT, check=True)
+        subprocess.run([str(binary)], check=True)
     unittest.main()

@@ -4,6 +4,7 @@
 #include "rtt_log.h"
 #include <stdio.h>
 #include "joint_interface.h"
+#include "joint_control.h"
 #include <string.h>
 
 // volatile since ISRs can overwrite these vars
@@ -12,6 +13,14 @@
 volatile JointRawFeedback_t g_raw_joints[NUM_JOINTS];
 volatile JointCommand_t g_joint_command[NUM_JOINTS];
 static SystemState_t sys_state = SYSTEM_STATE_INIT; // Current system state (see joint_interface.h)
+
+// Feedback older than this in RUNNING is a fault.
+// The dry run drives nothing, so it tolerates the ODrives' slow default message rates.
+#if PD_DRY_RUN
+#define FEEDBACK_TIMEOUT_MS 500
+#else
+#define FEEDBACK_TIMEOUT_MS 20
+#endif
 
 extern void StartControlTask(void *argument) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
@@ -103,8 +112,14 @@ extern void StartControlTask(void *argument) {
         }
         sys_state = SYSTEM_STATE_CLEAR_ERRORS;
         if(done){
+#if PD_DRY_RUN
+          // Motors stay in IDLE: the PD torque is only computed and printed
+          fast_printf("Cleared errors, PD dry run: not arming motors\r\n");
+          sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
+#else
           fast_printf("Cleared errors, arming motors\r\n");
           sys_state = SYSTEM_STATE_ARM_MOTORS;
+#endif
           last_action_tick = 0; // reset for next state
         }
         break;
@@ -158,6 +173,7 @@ extern void StartControlTask(void *argument) {
         sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
         if(all_calibrated){
           fast_printf("All calibrated, running loop\r\n");
+          joint_control_hold(raw_joints); // target = where the leg is now
           sys_state = SYSTEM_STATE_RUNNING;
         }
         break;
@@ -165,7 +181,7 @@ extern void StartControlTask(void *argument) {
       case SYSTEM_STATE_RUNNING: {
         for(int i = 0; i<NUM_JOINTS; i++){
           // check timeouts
-          if((uint32_t)xLastWakeTime > raw_joints[i].last_msg_tick + pdMS_TO_TICKS(20)){
+          if((uint32_t)xLastWakeTime > raw_joints[i].last_msg_tick + pdMS_TO_TICKS(FEEDBACK_TIMEOUT_MS)){
             fast_printf("JOINT TIMEOUT: JOINT %d\r\n", i);
             fast_printf("Time since last is %d\r\n", xLastWakeTime - raw_joints[i].last_msg_tick);
             sys_state = SYSTEM_STATE_FAULT;
@@ -182,6 +198,11 @@ extern void StartControlTask(void *argument) {
             break;
           }
         }
+        // The breaks above only leave the for loop: don't command torque after a fault
+        if(sys_state != SYSTEM_STATE_RUNNING){
+          break;
+        }
+        joint_control_step(raw_joints, loop_iter%100 == 0);
 
         // float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns / 14.0f;
         // float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns / 14.0f;

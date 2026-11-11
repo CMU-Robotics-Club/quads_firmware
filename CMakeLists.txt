@@ -52,6 +52,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/joint_interface.c
     Core/Src/control_task.c
     Core/Src/pd_controller.c
+    Core/Src/joint_control.c
 )
 
 # Add include paths
