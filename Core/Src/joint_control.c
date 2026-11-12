@@ -19,8 +19,8 @@
 /* TBD: first-test values, not tuned. Joint side: Nm/rad, Nm/(rad/s), Nm.
  * kp = 0 gives damping only, which is the first thing to try on the leg. */
 static const pd_gains_t gains[NUM_JOINTS] = {
-    [KNEE_INDEX] = {.kp = 0.0f, .kd = 0.2f, .tau_max = 1.0f},
-    [HIP_INDEX]  = {.kp = 0.0f, .kd = 0.2f, .tau_max = 1.0f},
+    [KNEE_INDEX] = {.kp = 180.0f, .kd = 2.8f, .tau_max = 1.5f},
+    [HIP_INDEX]  = {.kp = 180.0f, .kd = 2.8f, .tau_max = 1.5f},
 };
 
 static const char *const q_names[NUM_JOINTS]   = {[KNEE_INDEX] = "knee q", [HIP_INDEX] = "hip q"};
@@ -55,7 +55,7 @@ static float joint_qd(const JointRawFeedback_t *joint)
 void joint_control_hold(const JointRawFeedback_t *joints)
 {
     for (int i = 0; i < NUM_JOINTS; i++) {
-        q_des[i] = joint_q(&joints[i]);
+        q_des[i] = joint_q(&joints[i]) + 2.00f;
 #if !PD_DRY_RUN
         uint32_t mode[2] = {ODRIVE_CONTROL_MODE_TORQUE, ODRIVE_INPUT_MODE_PASSTHROUGH};
         odrive_process_tx_msg(i, ODRIVE_CMD_SET_CONTROLLER_MODE, (uint8_t *)mode, sizeof(mode));

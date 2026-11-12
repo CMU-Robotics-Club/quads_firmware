@@ -11,7 +11,7 @@
  *    and ControlTask does not arm the motors.
  * 0: ControlTask arms the motors and the torque is sent to the ODrives.
  * Keep 1 until signs, gear ratio and gains have been checked on the leg by hand. */
-#define PD_DRY_RUN 1
+#define PD_DRY_RUN 0
 
 /* Call once when entering RUNNING: the target becomes the current position, so the leg holds
  * where it is. With PD_DRY_RUN 0 it also switches the ODrives to torque control. */
