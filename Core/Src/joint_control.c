@@ -21,8 +21,8 @@
 /* TBD: first-test values, not tuned. Joint side: Nm/rad, Nm/(rad/s), Nm.
  * kp = 0 gives damping only, which is the first thing to try on the leg. */
 static const pd_gains_t gains[NUM_JOINTS] = {
-  [KNEE_INDEX] = {.kp = 180.0f, .kd = 2.8f, .tau_max = 1.5f},
-  [HIP_INDEX]  = {.kp = 180.0f, .kd = 2.8f, .tau_max = 1.5f},
+  [KNEE_INDEX] = {.kp = 180.0f, .kd = 2.8f, .tau_max = 1.8f},
+  [HIP_INDEX]  = {.kp = 180.0f, .kd = 2.8f, .tau_max = 1.8f},
 };
 
 static const char *const q_names[NUM_JOINTS]   = {[KNEE_INDEX] = "knee q", [HIP_INDEX] = "hip q"};
@@ -45,9 +45,11 @@ float pd_torque(const pd_gains_t *g, float q_des, float q, float qd_des, float q
     return 0.0f;
   }
   if (tau > g->tau_max) {
+    fast_printf("REACHED MAX TORQUE\r\n");
     return g->tau_max;
   }
   if (tau < -g->tau_max) {
+    fast_printf("REACHED MAX TORQUE\r\n");
     return -g->tau_max;
   }
   return tau;
@@ -78,7 +80,7 @@ static float joint_qd(const JointRawFeedback_t *joint)
 
 void joint_control_hold(const JointRawFeedback_t *joints) {
   for (int i = 0; i < NUM_JOINTS; i++) {
-    q_des[i] = joint_q(&joints[i]) + 2.00f;
+    q_des[i] = joint_q(&joints[i]);
 #if !PD_DRY_RUN
     uint32_t mode[2] = {ODRIVE_CONTROL_MODE_TORQUE, ODRIVE_INPUT_MODE_PASSTHROUGH};
     odrive_process_tx_msg(i, ODRIVE_CMD_SET_CONTROLLER_MODE, (uint8_t *)mode, sizeof(mode));
@@ -88,6 +90,11 @@ void joint_control_hold(const JointRawFeedback_t *joints) {
 
 void joint_control_step(const JointRawFeedback_t *joints, bool print)
 {
+  
+  // This loop tests continuous motion
+  // for (int i = 0; i < NUM_JOINTS; i++) {
+  //   q_des[i] += 0.001f;
+  // }
   for (int i = 0; i < NUM_JOINTS; i++) {
     float q = joint_q(&joints[i]);
     float qd = joint_qd(&joints[i]);

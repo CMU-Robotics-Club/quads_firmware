@@ -197,22 +197,23 @@ extern void StartControlTask(void *argument) {
         if(sys_state != SYSTEM_STATE_RUNNING){
           break;
         }
-        joint_control_step(raw_joints, loop_iter%100 == 0);
+        // TODO: Joint contorl step will later take in joint_command
+        joint_control_step(raw_joints, loop_iter%1000 == 0);
 
         // float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns / 14.0f;
         // float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns / 14.0f;
         // float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns / 14.0f;
         // float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns / 14.0f;
-        float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns;
-        float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns;
-        float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns;
-        float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns;
-        if(loop_iter%100 == 0){
-          print_float("hip_pos:", hip_pos);
-          print_float("hip_vel:", hip_vel);
-          print_float("knee_pos:", knee_pos);
-          print_float("knee_vel:", knee_vel);
-        }
+        // float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns;
+        // float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns;
+        // float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns;
+        // float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns;
+        // if(loop_iter%100 == 0){
+        //   print_float("hip_pos:", hip_pos);
+        //   print_float("hip_vel:", hip_vel);
+        //   print_float("knee_pos:", knee_pos);
+        //   print_float("knee_vel:", knee_vel);
+        // }
         break;
       }
 
