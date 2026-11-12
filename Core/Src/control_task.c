@@ -4,6 +4,7 @@
 #include "rtt_log.h"
 #include <stdio.h>
 #include "joint_interface.h"
+#include "joint_control.h"
 #include <string.h>
 
 // volatile since ISRs can overwrite these vars
@@ -86,6 +87,7 @@ extern void StartControlTask(void *argument) {
         break;
       
       case SYSTEM_STATE_CLEAR_ERRORS:
+        joint_control_feed_watchdog();
         if ((xTaskGetTickCount() - last_action_tick) >= pdMS_TO_TICKS(200)) {
           // Runs every 200 ms
           for (int i = 0; i<NUM_JOINTS; i++){
@@ -103,13 +105,20 @@ extern void StartControlTask(void *argument) {
         }
         sys_state = SYSTEM_STATE_CLEAR_ERRORS;
         if(done){
+#if PD_DRY_RUN
+          // Motors stay in IDLE: the PD torque is only computed and printed (zero torque is sent)
+          fast_printf("Cleared errors, PD dry run: not arming motors\r\n");
+          sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
+#else
           fast_printf("Cleared errors, arming motors\r\n");
           sys_state = SYSTEM_STATE_ARM_MOTORS;
+#endif
           last_action_tick = 0; // reset for next state
         }
         break;
 
       case SYSTEM_STATE_ARM_MOTORS:
+        joint_control_feed_watchdog();
         if ((xTaskGetTickCount() - last_action_tick) >= pdMS_TO_TICKS(1000)) {
           // Runs every 200 ms
           for (int i = 0; i<NUM_JOINTS; i++){
@@ -138,6 +147,7 @@ extern void StartControlTask(void *argument) {
         break;
 
       case SYSTEM_STATE_CALIBRATE_OFFSETS:
+        joint_control_feed_watchdog();
         // TODO: Ideally, we would wait until a usb command
         // is received that lets us know that the leg is ready for calibration
         
@@ -158,6 +168,7 @@ extern void StartControlTask(void *argument) {
         sys_state = SYSTEM_STATE_CALIBRATE_OFFSETS;
         if(all_calibrated){
           fast_printf("All calibrated, running loop\r\n");
+          joint_control_hold(raw_joints); // target = where the leg is now
           sys_state = SYSTEM_STATE_RUNNING;
         }
         break;
@@ -182,21 +193,27 @@ extern void StartControlTask(void *argument) {
             break;
           }
         }
+        // The breaks above only leave the for loop: don't command torque after a fault
+        if(sys_state != SYSTEM_STATE_RUNNING){
+          break;
+        }
+        // TODO: Joint contorl step will later take in joint_command
+        joint_control_step(raw_joints, loop_iter%1000 == 0);
 
         // float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns / 14.0f;
         // float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns / 14.0f;
         // float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns / 14.0f;
         // float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns / 14.0f;
-        float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns;
-        float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns;
-        float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns;
-        float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns;
-        if(loop_iter%100 == 0){
-          print_float("hip_pos:", hip_pos);
-          print_float("hip_vel:", hip_vel);
-          print_float("knee_pos:", knee_pos);
-          print_float("knee_vel:", knee_vel);
-        }
+        // float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns;
+        // float hip_vel = raw_joints[HIP_INDEX].motor_vel_turns;
+        // float knee_pos = raw_joints[KNEE_INDEX].motor_pos_turns;
+        // float knee_vel = raw_joints[KNEE_INDEX].motor_vel_turns;
+        // if(loop_iter%100 == 0){
+        //   print_float("hip_pos:", hip_pos);
+        //   print_float("hip_vel:", hip_vel);
+        //   print_float("knee_pos:", knee_pos);
+        //   print_float("knee_vel:", knee_vel);
+        // }
         break;
       }
 

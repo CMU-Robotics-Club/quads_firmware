@@ -81,4 +81,18 @@ if __name__ == "__main__":
                         "Middlewares/Third_Party/SEGGER_RTT/SEGGER_RTT.c",
                         "-o", str(binary)], cwd=ROOT, check=True)
         subprocess.run([str(binary)], check=True)
+
+        binary = Path(directory) / "test_pd_controller"
+        subprocess.run(["cc", "-std=c11", "-Wall", "-Wextra", "-Werror",
+                        "-ICore/Inc",
+                        "tests/test_pd_controller.c", "Core/Src/joint_control.c",
+                        "-lm", "-o", str(binary)], cwd=ROOT, check=True)
+        subprocess.run([str(binary)], check=True)
+
+        binary = Path(directory) / "test_joint_units"
+        subprocess.run(["cc", "-std=c11", "-Wall", "-Wextra", "-Werror",
+                        "-ICore/Inc",
+                        "tests/test_joint_units.c",
+                        "-lm", "-o", str(binary)], cwd=ROOT, check=True)
+        subprocess.run([str(binary)], check=True)
     unittest.main()
