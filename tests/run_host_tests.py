@@ -85,7 +85,7 @@ if __name__ == "__main__":
         binary = Path(directory) / "test_pd_controller"
         subprocess.run(["cc", "-std=c11", "-Wall", "-Wextra", "-Werror",
                         "-ICore/Inc",
-                        "tests/test_pd_controller.c", "Core/Src/pd_controller.c",
+                        "tests/test_pd_controller.c", "Core/Src/joint_control.c",
                         "-lm", "-o", str(binary)], cwd=ROOT, check=True)
         subprocess.run([str(binary)], check=True)
 

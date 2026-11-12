@@ -1,9 +1,23 @@
-#include "pd_controller.h"
+#include "joint_control.h"
 
 #include <assert.h>
 #include <math.h>
 #include <stddef.h>
 #include <stdio.h>
+
+void odrive_process_tx_msg(uint8_t joint_index, uint32_t cmd_id, uint8_t *data, uint32_t length)
+{
+    (void)joint_index;
+    (void)cmd_id;
+    (void)data;
+    (void)length;
+}
+
+void print_float(const char *name, float val)
+{
+    (void)name;
+    (void)val;
+}
 
 static int near(float a, float b)
 {
