@@ -52,12 +52,25 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/joint_interface.c
     Core/Src/control_task.c
     Core/Src/joint_control.c
+
+    # USB link (Jetson <-> STM32)
+    Core/Src/usb_link.c
+    Core/Src/usb_descriptors.c
+
+    # TinyUSB: device stack + CDC + DWC2 port only
+    Middlewares/Third_Party/tinyusb/src/tusb.c
+    Middlewares/Third_Party/tinyusb/src/common/tusb_fifo.c
+    Middlewares/Third_Party/tinyusb/src/device/usbd.c
+    Middlewares/Third_Party/tinyusb/src/class/cdc/cdc_device.c
+    Middlewares/Third_Party/tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c
+    Middlewares/Third_Party/tinyusb/src/portable/synopsys/dwc2/dwc2_common.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     Middlewares/Third_Party/SEGGER_RTT
+    Middlewares/Third_Party/tinyusb/src
 )
 
 # Add project symbols (macros)
