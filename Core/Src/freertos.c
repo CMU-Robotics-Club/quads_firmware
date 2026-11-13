@@ -62,7 +62,7 @@ osThreadId_t ControlTaskHandle;
 const osThreadAttr_t ControlTask_attributes = {
   .name = "ControlTask",
   .stack_size = 4096 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityRealtime,
 };
 
 /* Private function prototypes -----------------------------------------------*/
