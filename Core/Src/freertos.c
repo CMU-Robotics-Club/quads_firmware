@@ -30,6 +30,7 @@
 #include "mcp2518fd.h"
 #include "fdcan_interface.h"
 #include "usb_link.h"
+#include "usb_demo.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,12 +51,18 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 /* Tasks created in code (not in CubeMX). Keep all task priorities in this file.
- * Priority map: ControlTask Realtime > UsbTask AboveNormal > defaultTask Normal */
+ * Priority map: ControlTask Realtime > UsbTask AboveNormal > defaultTask Normal > UsbDemoTask Low */
 osThreadId_t UsbTaskHandle;
 const osThreadAttr_t UsbTask_attributes = {
   .name = "UsbTask",
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityAboveNormal,
+};
+osThreadId_t UsbDemoTaskHandle;
+const osThreadAttr_t UsbDemoTask_attributes = {
+  .name = "UsbDemoTask",
+  .stack_size = 512 * 4,   /* fast_printf uses vsnprintf */
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -120,6 +127,8 @@ void MX_FREERTOS_Init(void) {
   /* add threads, ... */
   /* creation of UsbTask: TinyUSB device stack (Jetson link) */
   UsbTaskHandle = osThreadNew(StartUsbTask, NULL, &UsbTask_attributes);
+  /* creation of UsbDemoTask: prints received USB commands over RTT (remove to disable) */
+  UsbDemoTaskHandle = osThreadNew(StartUsbDemoTask, NULL, &UsbDemoTask_attributes);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */

@@ -9,13 +9,14 @@
  *                            and the tud_cdc_* callbacks below
  *   ControlTask never calls tud_*; it only reads the latest command snapshot.
  *
- * P1 status: echo test only. Each CDC echoes back what it receives.
+ * CDC0 = command frames (quads_proto.c), CDC1 = log (echo until the log backend lands).
  */
 #include "usb_link.h"
 
 #include "main.h"
 #include "usb_otg.h"
 #include "tusb.h"
+#include "quads_proto.h"
 
 /**
  * @brief Configure PA11/PA12 and reuse CubeMX MspInit (HSI48 clock, voltage detector, NVIC).
@@ -105,9 +106,17 @@ static void usb_echo(uint8_t itf)
  * @brief TinyUSB callback on CDC data received (runs in UsbTask).
  * @param itf CDC index (QUADS_CDC_CMD or QUADS_CDC_LOG).
  * @note Name is fixed by TinyUSB (weak symbol override); do not rename.
- * P2: CDC0 goes to the COBS frame parser instead of usb_echo().
+ * CDC0 (CMD) -> COBS frame parser. CDC1 (LOG) is TX-only for now; echo kept for debug.
  */
 void tud_cdc_rx_cb(uint8_t itf)
 {
-  usb_echo(itf);
+  if (itf == QUADS_CDC_CMD) {
+    uint8_t buf[64];
+    while (tud_cdc_n_available(itf) > 0U) {
+      uint32_t n = tud_cdc_n_read(itf, buf, sizeof(buf));
+      qp_rx_bytes(buf, n);
+    }
+  } else {
+    usb_echo(itf);
+  }
 }
