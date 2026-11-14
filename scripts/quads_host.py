@@ -4,13 +4,13 @@
 @brief Host-side test tool for the Quads USB protocol (CDC0). Works on macOS and Linux.
 @author Ivan Lok
 
-Mirrors Core/Inc/quads_proto.h (framing) and Core/Inc/quads_msgs.h (messages). Needs: pip install pyserial
+Mirrors Core/Inc/usb/quads_proto.h (framing) and Core/Inc/usb/quads_msgs.h (messages). Needs: pip install pyserial
 
 Examples:
-  python3 scripts/quads_host.py joint --rate 100 --seconds 60   # stream CMD_JOINT (sine on joint 0)
-  python3 scripts/quads_host.py gains --joint 0 --kp 20 --kd 0.5 --tau-max 5
-  python3 scripts/quads_host.py bad                              # corrupted / malformed frames
-  python3 scripts/quads_host.py --port /dev/ttyACM0 joint        # explicit port
+  python3 scripts/quads_host.py joints --rate 100 --seconds 60   # stream CMD_JOINTS (sine on joint 0)
+  python3 scripts/quads_host.py gains --kp 20 --kd 0.5 --tau-max 5
+  python3 scripts/quads_host.py bad                               # corrupted / malformed frames
+  python3 scripts/quads_host.py --port /dev/ttyACM0 joints        # explicit port
 """
 import argparse
 import math
@@ -20,16 +20,17 @@ import threading
 import time
 
 # ---- protocol (keep in sync with quads_msgs.h) ----
-QP_CMD_JOINT = 0x01
+QP_CMD_JOINTS = 0x01
 QP_CMD_GAINS = 0x03
 QP_ACK = 0x83
 
 QP_ERR = {0: "OK", 1: "UNKNOWN_TYPE", 2: "BAD_LEN", 3: "BAD_ARG"}
+QP_MAX_JOINTS = 12
 
-HDR = struct.Struct("<BHB")         # type, seq, len
-CMD_JOINT = struct.Struct("<Bfff")  # joint_id, q_des, qd_des, tau_ff
-CMD_GAINS = struct.Struct("<Bfff")  # joint_id, kp, kd, tau_max
-ACK = struct.Struct("<BHB")         # ack_type, ack_seq, err
+HDR = struct.Struct("<BHB")                                    # type, seq, len
+CMD_JOINTS = struct.Struct("<" + "fff" * QP_MAX_JOINTS)    # (q_des, qd_des, tau_ff) x 12
+CMD_GAINS = struct.Struct("<" + "fff" * QP_MAX_JOINTS)     # (kp, kd, tau_max) x 12
+ACK = struct.Struct("<BHB")                                    # ack_type, ack_seq, err
 
 USB_VID, USB_PID = 0xCAFE, 0x4C51
 
@@ -114,6 +115,7 @@ class QuadsLink:
         self.acks = {}               # ack_seq -> (ack_type, err, t_rx)
         self.ack_cv = threading.Condition()
         self.rx_bad = 0
+        self.handlers = {}           # msg_type -> fn(payload: bytes), runs on the rx thread
         self._stop = False
         self._t = threading.Thread(target=self._rx_loop, daemon=True)
         self._t.start()
@@ -128,6 +130,10 @@ class QuadsLink:
         self.ser.write(build_frame(msg_type, seq, payload))
         self.seq = (self.seq + 1) & 0xFFFF
         return seq
+
+    def on(self, msg_type: int, fn):
+        """Call fn(payload) for every valid frame of msg_type sent by the STM32."""
+        self.handlers[msg_type] = fn
 
     def send_raw(self, data: bytes):
         self.ser.write(data)
@@ -165,6 +171,8 @@ class QuadsLink:
                     with self.ack_cv:
                         self.acks[ack_seq] = (ack_type, err, time.monotonic())
                         self.ack_cv.notify_all()
+                elif msg_type in self.handlers:
+                    self.handlers[msg_type](payload)
 
 
 def find_port() -> str:
@@ -179,31 +187,41 @@ def find_port() -> str:
 
 
 # ---- commands ----
-def cmd_joint(link: QuadsLink, args):
+def cmd_joints(link: QuadsLink, args):
+    """Stream CMD_JOINTS. Joint --joint follows a sine; every other joint is held at 0."""
     period = 1.0 / args.rate
     n = int(args.seconds * args.rate)
     t0 = time.monotonic()
     late = 0
     for i in range(n):
         t = i * period
-        q = args.amp * math.sin(2 * math.pi * args.freq * t)
-        qd = args.amp * 2 * math.pi * args.freq * math.cos(2 * math.pi * args.freq * t)
-        link.send(QP_CMD_JOINT, CMD_JOINT.pack(args.joint, q, qd, 0.0))
-        target = t0 + (i + 1) * period
-        sleep = target - time.monotonic()
+        vals = [0.0] * (3 * QP_MAX_JOINTS)
+        w = 2 * math.pi * args.freq
+        q = args.amp * math.sin(w * t)
+        vals[3 * args.joint + 0] = q
+        vals[3 * args.joint + 1] = args.amp * w * math.cos(w * t)
+        link.send(QP_CMD_JOINTS, CMD_JOINTS.pack(*vals))
+        sleep = t0 + (i + 1) * period - time.monotonic()
         if sleep > 0:
             time.sleep(sleep)
         else:
             late += 1
         if i % max(1, args.rate // 4) == 0:  # 4 Hz display (1 Hz would always hit sine zeros)
-            print(f"\rsent {i + 1}/{n}  q={q:+.3f} rad", end="", flush=True)
+            print(f"\rsent {i + 1}/{n}  j{args.joint} q={q:+.3f} rad", end="", flush=True)
     dt = time.monotonic() - t0
-    print(f"\nsent {n} CMD_JOINT in {dt:.2f}s ({n / dt:.1f} Hz), late ticks: {late}")
-    print("Check RTT on the STM32: 'CMD_JOINT j0 ver=...' every 200 ms, q following the sine.")
+    print(f"\nsent {n} CMD_JOINTS in {dt:.2f}s ({n / dt:.1f} Hz), late ticks: {late}")
+    print("Check RTT on the STM32: 'JOINTS ver=... j0 q=...' every 200 ms, q following the sine.")
+
+
+def gains_payload(args) -> bytes:
+    vals = []
+    for _ in range(QP_MAX_JOINTS):
+        vals += [args.kp, args.kd, args.tau_max]   # same gains on every joint
+    return CMD_GAINS.pack(*vals)
 
 
 def cmd_gains(link: QuadsLink, args):
-    payload = CMD_GAINS.pack(args.joint, args.kp, args.kd, args.tau_max)
+    payload = gains_payload(args)
     t_tx = time.monotonic()
     seq = link.send(QP_CMD_GAINS, payload)
     for attempt in range(3):
@@ -221,23 +239,19 @@ def cmd_gains(link: QuadsLink, args):
 
 
 def cmd_bad(link: QuadsLink, args):
-    good = build_frame(QP_CMD_GAINS, 0, CMD_GAINS.pack(0, 1.0, 0.1, 1.0))
-    cases = []
-    # 1. flipped bit -> CRC error, dropped silently
+    ok_gains = CMD_GAINS.pack(*([1.0, 0.1, 1.0] * QP_MAX_JOINTS))
+    nan_gains = CMD_GAINS.pack(*([float("nan"), 0.1, 1.0] + [1.0, 0.1, 1.0] * (QP_MAX_JOINTS - 1)))
+    good = build_frame(QP_CMD_GAINS, 0, ok_gains)
     raw = bytearray(cobs_decode(good[:-1]))
     raw[5] ^= 0x01
-    cases.append(("bad CRC (expect: no ACK, crc_errors++)", cobs_encode(bytes(raw)) + b"\x00", None))
-    # 2. unknown type -> ACK UNKNOWN_TYPE
-    cases.append(("unknown type 0x7E (expect ACK UNKNOWN_TYPE)", None, (0x7E, b"\x01\x02")))
-    # 3. wrong length for CMD_GAINS -> ACK BAD_LEN
-    cases.append(("CMD_GAINS short payload (expect ACK BAD_LEN)", None, (QP_CMD_GAINS, b"\x00\x01")))
-    # 4. NaN -> ACK BAD_ARG
-    cases.append(("CMD_GAINS kp=NaN (expect ACK BAD_ARG)", None,
-                  (QP_CMD_GAINS, CMD_GAINS.pack(0, float("nan"), 0.1, 1.0))))
-    # 5. garbage without delimiter then a good frame -> good frame must still work
-    cases.append(("300 bytes garbage, then valid CMD_GAINS (expect ACK OK)", b"\x55" * 300 + b"\x00",
-                  (QP_CMD_GAINS, CMD_GAINS.pack(0, 1.0, 0.1, 1.0))))
-
+    cases = [
+        ("bad CRC (expect: no ACK, crc_errors++)", cobs_encode(bytes(raw)) + b"\x00", None),
+        ("unknown type 0x7E (expect ACK UNKNOWN_TYPE)", None, (0x7E, b"\x01\x02")),
+        ("CMD_GAINS short payload (expect ACK BAD_LEN)", None, (QP_CMD_GAINS, b"\x00\x01")),
+        ("CMD_GAINS kp=NaN (expect ACK BAD_ARG)", None, (QP_CMD_GAINS, nan_gains)),
+        ("300 bytes garbage, then valid CMD_GAINS (expect ACK OK)", b"\x55" * 300 + b"\x00",
+         (QP_CMD_GAINS, ok_gains)),
+    ]
     for name, raw_bytes, msg in cases:
         if raw_bytes:
             link.send_raw(raw_bytes)
@@ -256,15 +270,14 @@ def main():
     ap.add_argument("--port", help="CDC0 serial port (default: auto-detect)")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    j = sub.add_parser("joint", help="stream CMD_JOINT")
-    j.add_argument("--joint", type=int, default=0)
+    j = sub.add_parser("joints", help="stream CMD_JOINTS (sine on one joint)")
+    j.add_argument("--joint", type=int, default=0, help="joint that moves, 0-11")
     j.add_argument("--rate", type=int, default=100, help="Hz")
     j.add_argument("--seconds", type=float, default=10)
     j.add_argument("--amp", type=float, default=0.5, help="rad")
     j.add_argument("--freq", type=float, default=0.5, help="Hz of the sine")
 
-    g = sub.add_parser("gains", help="send CMD_GAINS and wait for ACK")
-    g.add_argument("--joint", type=int, default=0)
+    g = sub.add_parser("gains", help="send CMD_GAINS (same gains on all joints), wait for ACK")
     g.add_argument("--kp", type=float, default=20.0)
     g.add_argument("--kd", type=float, default=0.5)
     g.add_argument("--tau-max", type=float, default=5.0)
@@ -274,7 +287,7 @@ def main():
     args = ap.parse_args()
     link = QuadsLink(args.port or find_port())
     try:
-        {"joint": cmd_joint, "gains": cmd_gains, "bad": cmd_bad}[args.cmd](link, args)
+        {"joints": cmd_joints, "gains": cmd_gains, "bad": cmd_bad}[args.cmd](link, args)
     finally:
         link.close()
 

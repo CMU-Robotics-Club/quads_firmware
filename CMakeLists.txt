@@ -54,11 +54,11 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/joint_control.c
 
     # USB link (Jetson <-> STM32)
-    Core/Src/usb_link.c
-    Core/Src/usb_descriptors.c
-    Core/Src/quads_proto.c
-    Core/Src/quads_msgs.c
-    Core/Src/usb_demo.c
+    Core/Src/usb/usb_link.c
+    Core/Src/usb/usb_descriptors.c
+    Core/Src/usb/quads_proto.c
+    Core/Src/usb/quads_msgs.c
+    Core/Src/usb/usb_demo.c
 
     # TinyUSB: device stack + CDC + DWC2 port only
     Middlewares/Third_Party/tinyusb/src/tusb.c
@@ -73,6 +73,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     Middlewares/Third_Party/SEGGER_RTT
+    Core/Inc/usb
     Middlewares/Third_Party/tinyusb/src
 )
 

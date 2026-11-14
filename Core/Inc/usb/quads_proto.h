@@ -37,7 +37,7 @@ enum {
   QP_OK               = 0,
   QP_ERR_UNKNOWN_TYPE = 1,
   QP_ERR_BAD_LEN      = 2,
-  QP_ERR_BAD_ARG      = 3,  /**< key out of range, NaN, negative gain... */
+  QP_ERR_BAD_ARG      = 3,  /**< rejected by the validate function (NaN, negative gain...) */
 };
 
 typedef struct __attribute__((packed)) {
@@ -58,14 +58,14 @@ typedef struct qp_channel {
   const char *name;
   uint8_t     type;
   uint8_t     len;
-  uint8_t     slots;
   bool        need_ack;
   uint8_t   (*validate)(const void *payload);
-  uint8_t    *storage;    /**< slots * len bytes */
-  uint32_t   *version;    /**< per slot, 0 = never written */
-  uint32_t   *stamp_ms;   /**< per slot, tick of last write */
+  uint8_t    *storage;    /**< len bytes: the latest payload */
+  uint32_t    version;    /**< +1 per write, 0 = never written */
+  uint32_t    stamp_ms;   /**< tick of last write */
   bool        have_seq;   /**< dedupe state for ACKed channels */
   uint16_t    last_seq;
+  uint8_t     last_err;   /**< result sent for last_seq, repeated on a resend */
 } qp_channel_t;
 
 /** Link statistics */
@@ -84,21 +84,20 @@ typedef struct {
 } qp_stats_t;
 
 /**
- * @brief Copy the latest value of a channel slot if it changed.
- * @param ch Channel, e.g. &qp_ch_CMD_JOINT.
- * @param slot Slot index (joint_id for keyed channels, 0 otherwise).
+ * @brief Copy the latest value of a channel if it changed since last_version.
+ * @param ch Channel, e.g. &qp_ch_CMD_JOINTS.
  * @param out Buffer of the channel's payload struct; filled only when new data.
  * @param last_version In: version seen last time (start with 0). Out: version copied.
- * @return 1 = new data copied, 0 = nothing new, -1 = bad slot.
- * @note Task context only (uses a FreeRTOS critical section, ~tens of ns).
+ * @return 1 = new data copied, 0 = nothing new.
+ * @note Task context only (FreeRTOS critical section, < 1 us for 144 bytes).
  */
-int qp_update(qp_channel_t *ch, uint8_t slot, void *out, uint32_t *last_version);
+int qp_update(qp_channel_t *ch, void *out, uint32_t *last_version);
 
 /**
- * @brief Milliseconds since a slot was last written (UINT32_MAX if never).
+ * @brief Milliseconds since the channel was last written (UINT32_MAX if never).
  * @note Use for timeout -> HOLD.
  */
-uint32_t qp_age_ms(const qp_channel_t *ch, uint8_t slot);
+uint32_t qp_age_ms(const qp_channel_t *ch);
 
 /** @brief Feed raw bytes received on CDC0. UsbTask only. */
 void qp_rx_bytes(const uint8_t *data, uint32_t n);

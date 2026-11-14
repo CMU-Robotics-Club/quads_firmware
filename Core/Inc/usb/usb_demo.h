@@ -7,7 +7,7 @@
 #define USB_DEMO_H
 
 /**
- * @brief UsbDemoTask entry: print new CMD_JOINT / CMD_GAINS values over RTT.
+ * @brief UsbDemoTask entry: print new CMD_JOINTS / CMD_GAINS values over RTT.
  * @param argument Unused CMSIS-RTOS2 task argument.
  * @note Created in freertos.c (USER CODE RTOS_THREADS), priority Low. Remove the
  * osThreadNew line there to disable it.

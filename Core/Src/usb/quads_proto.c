@@ -96,40 +96,36 @@ size_t qp_cobs_decode(const uint8_t *in, size_t len, uint8_t *out, size_t out_ma
 #define QP_NOW_MS()    ((uint32_t)xTaskGetTickCount())
 #endif
 
-/** @brief Writer side (UsbTask): store one validated payload into its slot. */
-static void channel_store(qp_channel_t *ch, uint8_t slot, const uint8_t *payload)
+/** @brief Writer side (UsbTask): store one validated payload. */
+static void channel_store(qp_channel_t *ch, const uint8_t *payload)
 {
   const uint32_t now = QP_NOW_MS();
   QP_LOCK();
-  memcpy(ch->storage + (size_t)slot * ch->len, payload, ch->len);
-  ch->stamp_ms[slot] = now;
-  ch->version[slot]++;
+  memcpy(ch->storage, payload, ch->len);
+  ch->stamp_ms = now;
+  ch->version++;
   QP_UNLOCK();
 }
 
-int qp_update(qp_channel_t *ch, uint8_t slot, void *out, uint32_t *last_version)
+int qp_update(qp_channel_t *ch, void *out, uint32_t *last_version)
 {
-  if (slot >= ch->slots) {
-    return -1;
-  }
   int is_new = 0;
   QP_LOCK();
-  const uint32_t ver = ch->version[slot];
-  if (ver != *last_version) {
-    memcpy(out, ch->storage + (size_t)slot * ch->len, ch->len);
-    *last_version = ver;
+  if (ch->version != *last_version) {
+    memcpy(out, ch->storage, ch->len);
+    *last_version = ch->version;
     is_new = 1;
   }
   QP_UNLOCK();
   return is_new;
 }
 
-uint32_t qp_age_ms(const qp_channel_t *ch, uint8_t slot)
+uint32_t qp_age_ms(const qp_channel_t *ch)
 {
-  if (slot >= ch->slots || ch->version[slot] == 0U) {
+  if (ch->version == 0U) {
     return UINT32_MAX;
   }
-  return QP_NOW_MS() - ch->stamp_ms[slot];
+  return QP_NOW_MS() - ch->stamp_ms;
 }
 
 /*------------- Parser state -------------*/
@@ -209,17 +205,14 @@ static void handle_frame(const uint8_t *raw, size_t raw_len)
   } else if (ch->need_ack && ch->have_seq && ch->last_seq == hdr.seq) {
     /* Host resent because our ACK was lost: ACK again, don't store twice */
     stats.dup_frames++;
-    send_ack(hdr.type, hdr.seq, QP_OK);
+    send_ack(hdr.type, hdr.seq, ch->last_err);
     return;
   } else {
-    const uint8_t slot = (ch->slots > 1U) ? payload[0] : 0U;
-    if (slot >= ch->slots) {
-      err = QP_ERR_BAD_ARG;
-    } else if (ch->validate != NULL) {
+    if (ch->validate != NULL) {
       err = ch->validate(payload);
     }
     if (err == QP_OK) {
-      channel_store(ch, slot, payload);
+      channel_store(ch, payload);
       stats.rx_frames++;
     } else {
       stats.bad_arg++;
@@ -227,6 +220,7 @@ static void handle_frame(const uint8_t *raw, size_t raw_len)
     if (ch->need_ack) {
       ch->have_seq = true;
       ch->last_seq = hdr.seq;
+      ch->last_err = err;
     }
   }
 
