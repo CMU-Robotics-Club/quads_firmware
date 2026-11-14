@@ -99,7 +99,8 @@ size_t qp_cobs_decode(const uint8_t *in, size_t len, uint8_t *out, size_t out_ma
 #ifdef QP_HOST_TEST
 #define QP_LOCK()      do { } while (0)
 #define QP_UNLOCK()    do { } while (0)
-#define QP_NOW_MS()    0U
+extern uint32_t qp_test_now_ms;
+#define QP_NOW_MS()    qp_test_now_ms
 #else
 #define QP_LOCK()      taskENTER_CRITICAL()
 #define QP_UNLOCK()    taskEXIT_CRITICAL()
@@ -218,17 +219,29 @@ static void handle_frame(const uint8_t *raw, size_t raw_len)
     return;
   }
 
-  /* 6. Length must match the struct exactly, 7. dedupe, 8. validate and store */
+  /* 6. Length must match the struct exactly */
   uint8_t err = QP_OK;
+  const uint32_t now = QP_NOW_MS();
+  /* 7. ACK channels: compare with the last seq, as a signed 16-bit difference so the
+   *    u16 wrap is harmless. Only within QP_DEDUPE_MS: after a pause the host may have
+   *    restarted with seq = 0, which must count as new. */
+  const bool recent = ch->need_ack && ch->have_seq && (now - ch->last_seq_ms) < QP_DEDUPE_MS;
+  const int16_t diff = (int16_t)(uint16_t)(hdr.seq - ch->last_seq);
   if (hdr.len != ch->len) {
     stats.bad_len++;
     err = QP_ERR_BAD_LEN;
-  } else if (ch->need_ack && ch->have_seq && ch->last_seq == hdr.seq) {
+  } else if (recent && diff == 0) {
     /* Host resent because our ACK was lost: ACK again, don't store twice */
     stats.dup_frames++;
     send_ack(hdr.type, hdr.seq, ch->last_err);
     return;
+  } else if (recent && diff < 0) {
+    /* Late resend of an older command: a newer one is already stored, keep it */
+    stats.stale_frames++;
+    send_ack(hdr.type, hdr.seq, QP_ERR_STALE);
+    return;
   } else {
+    /* 8. Validate and store */
     if (ch->validate != NULL) {
       err = ch->validate(payload);
     }
@@ -242,6 +255,7 @@ static void handle_frame(const uint8_t *raw, size_t raw_len)
       ch->have_seq = true;
       ch->last_seq = hdr.seq;
       ch->last_err = err;
+      ch->last_seq_ms = now;
     }
   }
 

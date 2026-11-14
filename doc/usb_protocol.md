@@ -141,8 +141,8 @@ Today the STM32 only sends `ACK`. Sending your own data from a firmware task (fo
 ## Rules for host code
 
 - Frame: `COBS( type u8 | seq u16 | len u8 | payload | crc16 u16 ) 0x00`, little-endian, CRC16-CCITT (`0x1021`, init `0xFFFF`).
-- Use one seq counter for every message you send.
-- For ACKed messages, wait for the ACK. If none comes within about 100 ms, resend with the same seq.
+- Use one seq counter for every message you send. Start it at a random value, so a restarted program doesn't reuse old seqs.
+- For ACKed messages, wait for the ACK. If none comes within about 100 ms, resend with the same seq. `err`: 0 OK, 1 UNKNOWN_TYPE, 2 BAD_LEN, 3 BAD_ARG, 4 STALE (a newer command was already applied).
 - Setpoints are not ACKed. Keep sending them; if they stop, `qp_age_ms()` grows and the controller holds.
 - On Linux open the port in raw mode (`cfmakeraw`), or the tty layer rewrites bytes.
 

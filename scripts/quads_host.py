@@ -14,6 +14,7 @@ Examples:
 """
 import argparse
 import math
+import random
 import struct
 import sys
 import threading
@@ -24,7 +25,7 @@ QP_CMD_JOINTS = 0x01
 QP_CMD_GAINS = 0x03
 QP_ACK = 0x83
 
-QP_ERR = {0: "OK", 1: "UNKNOWN_TYPE", 2: "BAD_LEN", 3: "BAD_ARG"}
+QP_ERR = {0: "OK", 1: "UNKNOWN_TYPE", 2: "BAD_LEN", 3: "BAD_ARG", 4: "STALE"}
 QP_MAX_JOINTS = 12
 
 HDR = struct.Struct("<BHB")                                    # type, seq, len
@@ -111,7 +112,8 @@ class QuadsLink:
     def __init__(self, port: str):
         import serial  # pyserial
         self.ser = serial.Serial(port, timeout=0.05)
-        self.seq = 0
+        # Random start: a restarted script must not reuse the seq of the previous run
+        self.seq = random.randrange(0x10000)
         self.acks = {}               # ack_seq -> (ack_type, err, t_rx)
         self.ack_cv = threading.Condition()
         self.rx_bad = 0
@@ -261,6 +263,14 @@ def cmd_bad(link: QuadsLink, args):
             continue
         seq = link.send(*msg)
         ack = link.wait_ack(seq)
+        result = f"err={QP_ERR.get(ack[1], ack[1])}" if ack else "no ACK"
+        print(f"[{result}] {name}")
+
+    # Dedupe: the last case was ACKed OK with seq. Resend it, then send an older seq.
+    for name, old_seq in (("resend same seq (expect ACK OK, dup_frames++)", seq),
+                          ("older seq (expect ACK STALE, not stored)", (seq - 1) & 0xFFFF)):
+        link.send_raw(build_frame(QP_CMD_GAINS, old_seq, ok_gains))
+        ack = link.wait_ack(old_seq)
         result = f"err={QP_ERR.get(ack[1], ack[1])}" if ack else "no ACK"
         print(f"[{result}] {name}")
 

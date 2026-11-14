@@ -29,6 +29,10 @@
 #define QP_MAX_RAW        (QP_HDR_LEN + QP_MAX_PAYLOAD + QP_CRC_LEN)
 #define QP_MAX_ENCODED    (QP_MAX_RAW + (QP_MAX_RAW / 254U) + 1U)
 
+/** Dedupe / stale checks only apply within this window after the last ACKed frame.
+ *  Longer than the host's resend timeout, shorter than a host restart. */
+#define QP_DEDUPE_MS      1000U
+
 /** STM32 -> Jetson message IDs (not channels: sent by firmware) */
 #define QP_ACK            0x83U
 
@@ -38,6 +42,7 @@ enum {
   QP_ERR_UNKNOWN_TYPE = 1,
   QP_ERR_BAD_LEN      = 2,
   QP_ERR_BAD_ARG      = 3,  /**< rejected by the validate function (NaN, negative gain...) */
+  QP_ERR_STALE        = 4,  /**< older seq than the last one on this channel: not applied */
 };
 
 typedef struct __attribute__((packed)) {
@@ -66,6 +71,7 @@ typedef struct qp_channel {
   bool        have_seq;   /**< dedupe state for ACKed channels */
   uint16_t    last_seq;
   uint8_t     last_err;   /**< result sent for last_seq, repeated on a resend */
+  uint32_t    last_seq_ms; /**< tick when last_seq arrived */
 } qp_channel_t;
 
 /** Link statistics */
@@ -79,6 +85,7 @@ typedef struct {
   uint32_t bad_arg;
   uint32_t seq_gaps;       /**< frames the host sent that we never saw */
   uint32_t dup_frames;     /**< repeated seq on ACKed messages (re-ACKed, not re-stored) */
+  uint32_t stale_frames;   /**< older seq on ACKed messages (ACK STALE, not stored) */
   uint32_t tx_frames;
   uint32_t tx_drops;       /**< TX FIFO full */
 } qp_stats_t;

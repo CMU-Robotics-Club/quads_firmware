@@ -58,7 +58,11 @@ Cheap checks first. Nothing in the header is trusted until the CRC passes.
 4. Count seq gaps. `gap = seq - last - 1` (u16). Only `0 < gap < 0x8000` counts, so a resend or a host restart is not counted as loss.
 5. Find the channel by type (linear search). Unknown type always gets `ACK UNKNOWN_TYPE`.
 6. Payload length must equal `sizeof(TYPE)`, else `BAD_LEN`.
-7. Dedupe, ACK channels only: same seq as last time means the host missed our ACK. Reply with the saved result, don't store again.
+7. Dedupe, ACK channels only, within 1 s (`QP_DEDUPE_MS`) of the last frame on that channel. `diff = (int16_t)(seq - last_seq)`:
+   - `diff == 0`: the host missed our ACK and resent. Reply with the saved result, don't store again.
+   - `diff < 0`: a late resend of an older command. A newer one is already stored, so reply `STALE` and drop it.
+
+   After 1 s without a frame the check is skipped, so a restarted host (new seq) is always accepted. The signed difference makes the u16 wrap harmless.
 8. Run `validate()` if there is one, then store and ACK.
 
 The payload starts at `raw[4]`, which is not 4-byte aligned. An unaligned float load (`VLDR`) HardFaults on the M7, so always `memcpy` the payload into a local struct. Never cast the pointer.
@@ -68,6 +72,7 @@ The payload starts at `raw[4]`, which is not 4-byte aligned. An unaligned float 
 Each message in `QP_MESSAGES` becomes one channel: a storage buffer of `sizeof(TYPE)`, a `version` counter and a timestamp. It holds only the latest value.
 
 ```c
+// Core/Src/usb/usb_proto.c (simplified)
 // write, UsbTask                      // read, any task: qp_update()
 taskENTER_CRITICAL();                  taskENTER_CRITICAL();
 memcpy(ch->storage, payload, len);     if (ch->version != *last_version) {
@@ -88,7 +93,10 @@ taskEXIT_CRITICAL();                   }
 `QP_MESSAGES(X)` is a list. Passing a different `X` generates different code from the same list:
 
 ```c
+// Core/Inc/usb/usb_msgs.h: one line of the list...
 X(CMD_JOINTS, 0x01, qp_cmd_joints_t, false, validate_joints)
+
+// ...and what it expands to
 
 enum { QP_CMD_JOINTS = 0x01 };                       // QP_X_ENUM, usb_msgs.h
 extern struct qp_channel qp_ch_CMD_JOINTS;           // QP_X_EXTERN, usb_msgs.h
@@ -116,6 +124,7 @@ switch (id) { case 0x01: break; ... }                // QP_X_CASE: duplicate ID 
 | Payload size wrong | `bad_len` | ACK channels, `BAD_LEN` | no |
 | Validate failed | `bad_arg` | ACK channels, `BAD_ARG` | no |
 | Resent seq | `dup_frames` | previous result | no (already stored) |
+| Older seq | `stale_frames` | `STALE` | no |
 | OK | `rx_frames` | ACK channels, `OK` | yes |
 | TX FIFO full | `tx_drops` | lost | yes, host resend hits dedupe |
 
@@ -132,6 +141,6 @@ switch (id) { case 0x01: break; ... }                // QP_X_CASE: duplicate ID 
 
 ## Known limits
 
-- Dedupe remembers only the last seq per channel. The host must wait for an ACK (or timeout) before sending the next ACKed message.
+- A host that restarts within 1 s of its last ACKed message can get `STALE` on its first one (if its new seq happens to be lower). `quads_host.py` starts at a random seq.
 - `qp_stats_t` is not locked. Fine for debugging, don't use it for control decisions.
 - Only UsbTask can send. STATE from ControlTask needs a TX channel that UsbTask drains (planned).
