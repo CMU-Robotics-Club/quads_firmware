@@ -56,8 +56,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # USB link (Jetson <-> STM32)
     Core/Src/usb/usb_link.c
     Core/Src/usb/usb_descriptors.c
-    Core/Src/usb/quads_proto.c
-    Core/Src/usb/quads_msgs.c
+    Core/Src/usb/usb_proto.c
+    Core/Src/usb/usb_msgs.c
     Core/Src/usb/usb_demo.c
 
     # TinyUSB: device stack + CDC + DWC2 port only

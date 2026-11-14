@@ -35,9 +35,7 @@ static const tusb_desc_device_t desc_device = {
   .bNumConfigurations = 0x01,
 };
 
-/**
- * @brief TinyUSB callback: return the device descriptor.
- */
+/* TinyUSB callback: device descriptor */
 const uint8_t *tud_descriptor_device_cb(void)
 {
   return (const uint8_t *)&desc_device;
@@ -70,10 +68,7 @@ static const uint8_t desc_configuration[] = {
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_LOG, 5, EPNUM_CDC_LOG_NOTIF, 8, EPNUM_CDC_LOG_OUT, EPNUM_CDC_LOG_IN, 64),
 };
 
-/**
- * @brief TinyUSB callback: return the configuration descriptor (2x CDC).
- * @param index Configuration index (only one configuration).
- */
+/* TinyUSB callback: configuration descriptor (only one configuration, index ignored) */
 const uint8_t *tud_descriptor_configuration_cb(uint8_t index)
 {
   (void)index;
@@ -100,10 +95,8 @@ static const char *const string_desc_arr[] = {
 
 static uint16_t desc_str[32 + 1];
 
-/**
- * @brief Convert the 96-bit chip UID to 24 hex chars (UTF-16) for the serial number.
- * @note Stable per chip, so udev/macOS can tell boards apart.
- */
+/* 96-bit chip UID -> 24 hex chars (UTF-16) for the serial number. Stable per chip,
+ * so udev / macOS can tell boards apart. */
 static size_t uid_to_utf16(uint16_t *out, size_t max_chars)
 {
   static const char hex[] = "0123456789ABCDEF";
@@ -121,11 +114,8 @@ static size_t uid_to_utf16(uint16_t *out, size_t max_chars)
   return n;
 }
 
-/**
- * @brief TinyUSB callback: return string descriptor `index` as UTF-16.
- * @param index String index (STRID_*).
- * @param langid Ignored (English only).
- */
+/* TinyUSB callback: string descriptor `index` (STRID_*) as UTF-16. English only,
+ * so langid is ignored. */
 const uint16_t *tud_descriptor_string_cb(uint8_t index, uint16_t langid)
 {
   (void)langid;

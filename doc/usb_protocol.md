@@ -3,7 +3,7 @@
 The host talks to the STM32 over the **user USB port**: CN13 on the Nucleo, J1 on the PCB. The ST-Link is not involved.
 The STM32 shows up as 2 serial ports: **CDC0 = commands** (`/dev/cu.usbmodem…1`, `/dev/ttyACM0`) and **CDC1 = log**.
 
-All USB code lives in `Core/Src/usb/` and `Core/Inc/usb/`. To add a message you only touch `quads_msgs.h`, `quads_msgs.c`, the task that uses it, and `scripts/quads_host.py`.
+All USB code lives in `Core/Src/usb/` and `Core/Inc/usb/`. To add a message you only touch `usb_msgs.h`, `usb_msgs.c`, the task that uses it, and `scripts/quads_host.py`.
 
 ## Tutorial: add a new command
 
@@ -12,7 +12,7 @@ Goal: the Jetson sends **`CMD_MODE`** (0 = idle, 1 = stand, 2 = walk). The STM32
 ### Step 1: define the payload
 
 ```c
-// Core/Inc/usb/quads_msgs.h
+// Core/Inc/usb/usb_msgs.h
 typedef struct __attribute__((packed)) {
   uint8_t mode;               // 0 idle, 1 stand, 2 walk
 } qp_cmd_mode_t;
@@ -24,7 +24,7 @@ Each message keeps **one latest value**. If the data is per joint, put an array 
 ### Step 2: register it (one line)
 
 ```c
-// Core/Inc/usb/quads_msgs.h
+// Core/Inc/usb/usb_msgs.h
 #define QP_MESSAGES(X)                                                          \
   /* NAME        ID    TYPE             ACK    VALID          */     \
   X(CMD_JOINTS,  0x01, qp_cmd_joints_t, false, validate_joints)     \
@@ -43,7 +43,7 @@ Each message keeps **one latest value**. If the data is per joint, put an array 
 ### Step 3: validate it (optional)
 
 ```c
-// Core/Src/usb/quads_msgs.c
+// Core/Src/usb/usb_msgs.c
 static uint8_t validate_mode(const void *payload)
 {
   qp_cmd_mode_t c;
@@ -58,7 +58,7 @@ A rejected frame is not stored, and the host gets `ACK err=BAD_ARG`.
 
 ```c
 // your task, e.g. Core/Src/usb/usb_demo.c
-#include "quads_proto.h"
+#include "usb_proto.h"
 
 static uint32_t mode_ver = 0;                         // one per channel you read
 qp_cmd_mode_t m;
@@ -88,7 +88,7 @@ m = sub.add_parser("mode"); m.add_argument("mode", type=int)
 # and add "mode": cmd_mode to the dispatch dict
 ```
 
-A C++ / ROS 2 host does the same thing. On Linux, open the port in raw mode (`cfmakeraw`), otherwise the tty layer rewrites bytes.
+A C++ / ROS 2 host does the same thing, see "Rules for host code" below.
 
 ### Step 6: test it
 
@@ -138,25 +138,15 @@ Today the STM32 only sends `ACK`. Sending your own data from a firmware task (fo
 | `0x03` | `CMD_GAINS` | 12 × (`kp`, `kd`, `tau_max`) f32 = 144 B | yes |
 | `0x83` | `ACK` (STM32 → host) | `ack_type u8, ack_seq u16, err u8` | — |
 
-## How it works
+## Rules for host code
 
-```
-COBS( type u8 | seq u16 | len u8 | payload | crc16 u16 )  0x00      (little-endian)
-```
+- Frame: `COBS( type u8 | seq u16 | len u8 | payload | crc16 u16 ) 0x00`, little-endian, CRC16-CCITT (`0x1021`, init `0xFFFF`).
+- Use one seq counter for every message you send.
+- For ACKed messages, wait for the ACK. If none comes within about 100 ms, resend with the same seq.
+- Setpoints are not ACKed. Keep sending them; if they stop, `qp_age_ms()` grows and the controller holds.
+- On Linux open the port in raw mode (`cfmakeraw`), or the tty layer rewrites bytes.
 
-- **COBS:** USB CDC is a byte stream, so frames need a boundary. `0x00` appears only at the end of a frame, so after any garbage the parser resyncs at the next `0x00`.
-- **CRC16-CCITT** (`0x1021`, init `0xFFFF`): catches software corruption, such as a tty that is not in raw mode or two writers on one port. Bad frames are dropped silently.
-- **seq:** one counter for **all** messages the host sends. It counts lost frames and matches ACKs. If the host resends a seq on an ACKed message, the STM32 replies with the same result and does not apply the message twice.
-- **ACK** `0x83`: `ack_type u8, ack_seq u16, err u8`. `err` is 0 OK, 1 UNKNOWN_TYPE, 2 BAD_LEN, or 3 BAD_ARG.
-
-```
-USB IRQ → UsbTask: parse → validate → copy into channel (critical section) → ACK
-                                                  ↑
-                         ControlTask / UsbDemoTask: qp_update() copies out (critical section)
-```
-
-Both the write and the `qp_update()` copy run inside `taskENTER_CRITICAL()`, so a reader never sees a half-written struct. Your `out` copy is private, so nothing changes it after `qp_update()` returns. Do not share pointers to channel storage.
-Setpoints have no ACK. If they stop arriving, `qp_age_ms()` grows and the controller should hold position.
+Internals (parser, locking, error handling) are in [usb_implementation.md](usb_implementation.md).
 
 ## Test the existing messages
 

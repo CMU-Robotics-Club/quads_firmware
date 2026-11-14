@@ -1,12 +1,18 @@
 /**
- * @file quads_proto.c
- * @brief CDC0 protocol: COBS framing, CRC16, frame parser, message registry, ACK.
+ * @file usb_proto.c
+ * @brief CDC0 protocol: COBS framing, CRC16, frame parser, channel storage, ACK.
  * @author Ivan Lok
  *
- * Parser runs in UsbTask (called from tud_cdc_rx_cb). One generic path for every
- * message in quads_msgs.h; per-message code is only the optional validate function.
+ * RX path (all in UsbTask, entered from tud_cdc_rx_cb):
+ *   qp_rx_bytes()  collect bytes until 0x00
+ *   -> qp_cobs_decode()  undo COBS
+ *   -> handle_frame()    CRC, header, find channel, length, dedupe, validate
+ *   -> channel_store()   copy into the channel under a critical section, then ACK
+ *
+ * One generic path for every message in usb_msgs.h; per-message code is only the
+ * optional validate function. Readers (any task) use qp_update().
  */
-#include "quads_proto.h"
+#include "usb_proto.h"
 
 #include <string.h>
 
@@ -18,6 +24,7 @@
 
 /*------------- CRC16-CCITT (poly 0x1021, init 0xFFFF, no reflect, no xorout) -------------*/
 
+/* Bitwise instead of a 512 B table: frames are small and the rate is low. */
 uint16_t qp_crc16(const uint8_t *data, size_t len)
 {
   uint16_t crc = 0xFFFFU;
@@ -32,6 +39,9 @@ uint16_t qp_crc16(const uint8_t *data, size_t len)
 
 /*------------- COBS -------------*/
 
+/* Each block starts with a code byte = (distance to the next zero) + 1. code_idx is
+ * where the current block's code byte goes; it is filled in once the block ends.
+ * A run of 254 non-zero bytes closes the block with code 0xFF (no zero implied). */
 size_t qp_cobs_encode(const uint8_t *in, size_t len, uint8_t *out)
 {
   size_t code_idx = 0;
@@ -55,10 +65,8 @@ size_t qp_cobs_encode(const uint8_t *in, size_t len, uint8_t *out)
   return o;
 }
 
-/**
- * @brief Decode one COBS block (without the trailing 0x00).
- * @return Decoded length, or 0 on malformed input / overflow.
- */
+/* Reverse of encode: copy code-1 bytes, then insert the implied zero, except after a
+ * 0xFF block or at the very end. Every write is bounds-checked against out_max. */
 size_t qp_cobs_decode(const uint8_t *in, size_t len, uint8_t *out, size_t out_max)
 {
   size_t i = 0;
@@ -86,6 +94,8 @@ size_t qp_cobs_decode(const uint8_t *in, size_t len, uint8_t *out, size_t out_ma
 
 /*------------- Channel storage access -------------*/
 
+/* Host tests build this file without FreeRTOS */
+
 #ifdef QP_HOST_TEST
 #define QP_LOCK()      do { } while (0)
 #define QP_UNLOCK()    do { } while (0)
@@ -96,7 +106,8 @@ size_t qp_cobs_decode(const uint8_t *in, size_t len, uint8_t *out, size_t out_ma
 #define QP_NOW_MS()    ((uint32_t)xTaskGetTickCount())
 #endif
 
-/** @brief Writer side (UsbTask): store one validated payload. */
+/* Writer side (UsbTask). Same lock as qp_update(), so a reader never copies a
+ * half-written struct: ControlTask has higher priority and could preempt mid-memcpy. */
 static void channel_store(qp_channel_t *ch, const uint8_t *payload)
 {
   const uint32_t now = QP_NOW_MS();
@@ -107,6 +118,7 @@ static void channel_store(qp_channel_t *ch, const uint8_t *payload)
   QP_UNLOCK();
 }
 
+/* Compare with != (not >) so the u32 version wrapping around is harmless. */
 int qp_update(qp_channel_t *ch, void *out, uint32_t *last_version)
 {
   int is_new = 0;
@@ -120,6 +132,8 @@ int qp_update(qp_channel_t *ch, void *out, uint32_t *last_version)
   return is_new;
 }
 
+/* No lock: two aligned 32-bit reads are each atomic on the M7. Worst case the
+ * age is off by one update, which is fine for a timeout. */
 uint32_t qp_age_ms(const qp_channel_t *ch)
 {
   if (ch->version == 0U) {
@@ -128,15 +142,15 @@ uint32_t qp_age_ms(const qp_channel_t *ch)
   return QP_NOW_MS() - ch->stamp_ms;
 }
 
-/*------------- Parser state -------------*/
+/*------------- Parser state (UsbTask only, so no lock) -------------*/
 
 static qp_stats_t stats;
-static bool     have_rx_seq;
-static uint16_t last_rx_seq;
+static bool     have_rx_seq;    /* false until the first valid frame */
+static uint16_t last_rx_seq;    /* host seq of the last valid frame, for gap counting */
 
-static uint8_t  enc_buf[QP_MAX_ENCODED];
+static uint8_t  enc_buf[QP_MAX_ENCODED];  /* COBS bytes of the frame being received */
 static size_t   enc_len;
-static bool     enc_overflow;
+static bool     enc_overflow;   /* frame too long: drop bytes until the next 0x00 */
 
 void qp_get_stats(qp_stats_t *out)
 {
@@ -149,6 +163,7 @@ static void send_ack(uint8_t type, uint16_t seq, uint8_t err)
   (void)qp_send(QP_ACK, &ack, sizeof(ack));
 }
 
+/* Linear search: fine for a handful of messages; switch to a 128-entry table if it grows. */
 static qp_channel_t *find_channel(uint8_t type)
 {
   for (size_t i = 0; i < qp_channel_count; i++) {
@@ -159,13 +174,15 @@ static qp_channel_t *find_channel(uint8_t type)
   return NULL;
 }
 
-/** @brief Generic path for every message: CRC -> header -> channel -> length -> validate -> store -> ACK. */
+/* Generic path for every message, steps numbered below. */
 static void handle_frame(const uint8_t *raw, size_t raw_len)
 {
+  /* 1. Frame must hold at least a header and a CRC */
   if (raw_len < QP_HDR_LEN + QP_CRC_LEN) {
     stats.cobs_errors++;
     return;
   }
+  /* 2. CRC. On failure type and seq can't be trusted, so drop silently (no NACK) */
   const size_t body_len = raw_len - QP_CRC_LEN;
   const uint16_t crc_rx = (uint16_t)(raw[body_len] | ((uint16_t)raw[body_len + 1U] << 8));
   if (qp_crc16(raw, body_len) != crc_rx) {
@@ -173,6 +190,7 @@ static void handle_frame(const uint8_t *raw, size_t raw_len)
     return;
   }
 
+  /* 3. Header. memcpy because raw is not aligned for the u16 seq */
   qp_hdr_t hdr;
   memcpy(&hdr, raw, sizeof(hdr));
   const uint8_t *payload = raw + QP_HDR_LEN;
@@ -181,7 +199,8 @@ static void handle_frame(const uint8_t *raw, size_t raw_len)
     return;
   }
 
-  /* Loss detection on the host's single seq counter */
+  /* 4. Loss detection on the host's single seq counter. gap >= 0x8000 means the
+   *    seq went backwards (host restarted), which is not counted as loss. */
   if (have_rx_seq) {
     const uint16_t gap = (uint16_t)(hdr.seq - last_rx_seq - 1U);
     if (gap != 0U && gap < 0x8000U) {
@@ -191,6 +210,7 @@ static void handle_frame(const uint8_t *raw, size_t raw_len)
   have_rx_seq = true;
   last_rx_seq = hdr.seq;
 
+  /* 5. Unknown type: always ACK, so the host learns it's talking to old firmware */
   qp_channel_t *ch = find_channel(hdr.type);
   if (ch == NULL) {
     stats.unknown_type++;
@@ -198,6 +218,7 @@ static void handle_frame(const uint8_t *raw, size_t raw_len)
     return;
   }
 
+  /* 6. Length must match the struct exactly, 7. dedupe, 8. validate and store */
   uint8_t err = QP_OK;
   if (hdr.len != ch->len) {
     stats.bad_len++;
@@ -229,9 +250,10 @@ static void handle_frame(const uint8_t *raw, size_t raw_len)
   }
 }
 
+/* Bytes can arrive split across USB packets, so state is kept between calls. */
 void qp_rx_bytes(const uint8_t *data, uint32_t n)
 {
-  static uint8_t raw[QP_MAX_RAW];
+  static uint8_t raw[QP_MAX_RAW];   /* static: keeps 261 B off the UsbTask stack */
   for (uint32_t i = 0; i < n; i++) {
     const uint8_t b = data[i];
     if (b != 0U) {
@@ -261,7 +283,7 @@ void qp_rx_bytes(const uint8_t *data, uint32_t n)
 /*------------- TX -------------*/
 
 #ifndef QP_HOST_TEST
-static uint16_t tx_seq;
+static uint16_t tx_seq;   /* STM32's own counter, independent of the host's */
 
 int qp_send(uint8_t type, const void *payload, uint8_t len)
 {

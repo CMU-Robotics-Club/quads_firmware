@@ -1,12 +1,12 @@
 /**
- * @file quads_msgs.h
+ * @file usb_msgs.h
  * @brief The ONE place to define USB messages (payload structs + message list).
  * @author Ivan Lok
  *
  * Adding a message:
  *   1. Write a packed payload struct below.
  *   2. Add one line to QP_MESSAGES.
- *   3. (optional) Write a validate function in quads_msgs.c, or pass NULL.
+ *   3. (optional) Write a validate function in usb_msgs.c, or pass NULL.
  *   4. Mirror the struct in scripts/quads_host.py.
  * Everything else (enum ID, channel object, storage, parser table) is generated.
  *
@@ -17,8 +17,8 @@
  *   qp_cmd_joints_t sp; uint32_t ver = 0;
  *   if (qp_update(&qp_ch_CMD_JOINTS, &sp, &ver) > 0) { ...new data... }
  */
-#ifndef QUADS_MSGS_H
-#define QUADS_MSGS_H
+#ifndef USB_MSGS_H
+#define USB_MSGS_H
 
 #include <stdint.h>
 
@@ -64,6 +64,8 @@ typedef struct __attribute__((packed)) {
   X(CMD_GAINS,   0x03, qp_cmd_gains_t,  true,  validate_gains)
 
 /*------------- Generated: IDs and channel declarations -------------*/
+/* Each X(...) line above expands to QP_<NAME> = ID and extern qp_ch_<NAME>.
+ * The channel objects themselves are generated in usb_msgs.c. */
 #define QP_X_ENUM(NAME, ID, TYPE, ACK, VALID) QP_##NAME = (ID),
 enum { QP_MESSAGES(QP_X_ENUM) };
 #undef QP_X_ENUM
@@ -73,4 +75,4 @@ struct qp_channel;
 QP_MESSAGES(QP_X_EXTERN)
 #undef QP_X_EXTERN
 
-#endif /* QUADS_MSGS_H */
+#endif /* USB_MSGS_H */

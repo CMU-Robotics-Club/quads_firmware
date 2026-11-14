@@ -9,18 +9,15 @@
  *                            and the tud_cdc_* callbacks below
  *   ControlTask never calls tud_*; it only reads the latest command snapshot.
  *
- * CDC0 = command frames (quads_proto.c), CDC1 = log (echo until the log backend lands).
+ * CDC0 = command frames (usb_proto.c), CDC1 = log (echo until the log backend lands).
  */
 #include "usb_link.h"
 
 #include "main.h"
 #include "usb_otg.h"
 #include "tusb.h"
-#include "quads_proto.h"
+#include "usb_proto.h"
 
-/**
- * @brief Configure PA11/PA12 and reuse CubeMX MspInit (HSI48 clock, voltage detector, NVIC).
- */
 static void usb_hw_init(void)
 {
   /* PA11 = DM, PA12 = DP, AF10. CubeMX's MspInit does not configure these pins. */
@@ -39,10 +36,6 @@ static void usb_hw_init(void)
   HAL_PCD_MspInit(&hpcd_USB_OTG_HS);
 }
 
-/**
- * @brief UsbTask entry: init USB hardware and TinyUSB, then run tud_task() forever.
- * @param argument Unused CMSIS-RTOS2 task argument.
- */
 void StartUsbTask(void *argument)
 {
   (void)argument;
@@ -66,9 +59,6 @@ void StartUsbTask(void *argument)
   }
 }
 
-/**
- * @brief True when the host has enumerated and configured the device.
- */
 bool usb_link_connected(void)
 {
   return tud_mounted();
@@ -76,11 +66,9 @@ bool usb_link_connected(void)
 
 /*------------- IRQ -------------*/
 
-/**
- * @brief USB IRQ: hand the event to TinyUSB, which queues it for UsbTask.
- * @note Defined here, not in stm32h7xx_it.c. Keep "Generate IRQ handler" for
- * USB_OTG_HS unticked in CubeMX, or this becomes a duplicate symbol.
- */
+/* Only queues an event for UsbTask. Defined here, not in stm32h7xx_it.c: keep
+ * "Generate IRQ handler" for USB_OTG_HS unticked in CubeMX, or this becomes a
+ * duplicate symbol. */
 void OTG_HS_IRQHandler(void)
 {
   tud_int_handler(BOARD_TUD_RHPORT);
@@ -88,10 +76,7 @@ void OTG_HS_IRQHandler(void)
 
 /*------------- CDC callbacks (run in UsbTask) -------------*/
 
-/**
- * @brief P1 test: echo every received byte back on the same CDC.
- * @param itf CDC index (QUADS_CDC_CMD or QUADS_CDC_LOG).
- */
+/* Debug: echo every received byte back on the same CDC (used on CDC1 for now). */
 static void usb_echo(uint8_t itf)
 {
   uint8_t buf[64];
@@ -102,12 +87,8 @@ static void usb_echo(uint8_t itf)
   tud_cdc_n_write_flush(itf);
 }
 
-/**
- * @brief TinyUSB callback on CDC data received (runs in UsbTask).
- * @param itf CDC index (QUADS_CDC_CMD or QUADS_CDC_LOG).
- * @note Name is fixed by TinyUSB (weak symbol override); do not rename.
- * CDC0 (CMD) -> COBS frame parser. CDC1 (LOG) is TX-only for now; echo kept for debug.
- */
+/* TinyUSB callback (weak symbol override, name is fixed). Runs in UsbTask.
+ * CDC0 (CMD) -> frame parser. CDC1 (LOG) is TX-only for now; echo kept for debug. */
 void tud_cdc_rx_cb(uint8_t itf)
 {
   if (itf == QUADS_CDC_CMD) {

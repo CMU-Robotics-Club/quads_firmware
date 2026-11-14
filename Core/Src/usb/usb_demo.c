@@ -13,7 +13,7 @@
 #include "usb_demo.h"
 
 #include "cmsis_os2.h"
-#include "quads_proto.h"
+#include "usb_proto.h"
 #include "rtt_log.h"
 
 #define USB_DEMO_JOINTS   2U    /* knee (0), hip (1) */

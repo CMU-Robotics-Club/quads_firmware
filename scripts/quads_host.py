@@ -4,7 +4,7 @@
 @brief Host-side test tool for the Quads USB protocol (CDC0). Works on macOS and Linux.
 @author Ivan Lok
 
-Mirrors Core/Inc/usb/quads_proto.h (framing) and Core/Inc/usb/quads_msgs.h (messages). Needs: pip install pyserial
+Mirrors Core/Inc/usb/usb_proto.h (framing) and Core/Inc/usb/usb_msgs.h (messages). Needs: pip install pyserial
 
 Examples:
   python3 scripts/quads_host.py joints --rate 100 --seconds 60   # stream CMD_JOINTS (sine on joint 0)
@@ -19,7 +19,7 @@ import sys
 import threading
 import time
 
-# ---- protocol (keep in sync with quads_msgs.h) ----
+# ---- protocol (keep in sync with usb_msgs.h) ----
 QP_CMD_JOINTS = 0x01
 QP_CMD_GAINS = 0x03
 QP_ACK = 0x83
