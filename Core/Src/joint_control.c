@@ -5,6 +5,7 @@
 
 #include <math.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /* 14 is what Laika-Software assumes (laika_hardware_interface.cpp divides by 14).
  * Measured on the test leg by turning each output about 90 degrees by hand: knee 13.9, hip 13.6. */
@@ -21,8 +22,8 @@
 /* TBD: first-test values, not tuned. Joint side: Nm/rad, Nm/(rad/s), Nm.
  * kp = 0 gives damping only, which is the first thing to try on the leg. */
 static const pd_gains_t gains[NUM_JOINTS] = {
-  [KNEE_INDEX] = {.kp = 180.0f, .kd = 2.8f, .tau_max = 1.8f},
-  [HIP_INDEX]  = {.kp = 180.0f, .kd = 2.8f, .tau_max = 1.8f},
+  [KNEE_INDEX] = {.kp = 20.0f, .kd = 2.8f, .tau_max = 1.8f},
+  [HIP_INDEX]  = {.kp = 20.0f, .kd = 2.8f, .tau_max = 1.8f},
 };
 
 static const char *const q_names[NUM_JOINTS]   = {[KNEE_INDEX] = "knee q", [HIP_INDEX] = "hip q"};
@@ -30,6 +31,11 @@ static const char *const qd_names[NUM_JOINTS]  = {[KNEE_INDEX] = "knee qd", [HIP
 static const char *const tau_names[NUM_JOINTS] = {[KNEE_INDEX] = "knee tau", [HIP_INDEX] = "hip tau"};
 
 static float q_des[NUM_JOINTS]; /* target angle, rad */
+static float q_ori[NUM_JOINTS];
+static uint32_t step_count;
+#define TARGET_PERIOD_STEPS 2000U
+#define TARGET_OFFSET_RAD   1.00f
+
 
 float pd_torque(const pd_gains_t *g, float q_des, float q, float qd_des, float qd, float tau_ff)
 {
@@ -79,7 +85,10 @@ static float joint_qd(const JointRawFeedback_t *joint)
 }
 
 void joint_control_hold(const JointRawFeedback_t *joints) {
+  step_count = 0;
   for (int i = 0; i < NUM_JOINTS; i++) {
+    q_ori[i] = joint_q(&joints[i]);
+    // q_des[i] = q_hold[i];
     q_des[i] = joint_q(&joints[i]);
 #if !PD_DRY_RUN
     uint32_t mode[2] = {ODRIVE_CONTROL_MODE_TORQUE, ODRIVE_INPUT_MODE_PASSTHROUGH};
@@ -95,7 +104,14 @@ void joint_control_step(const JointRawFeedback_t *joints, bool print)
   // for (int i = 0; i < NUM_JOINTS; i++) {
   //   q_des[i] += 0.001f;
   // }
+  step_count += 1;
   for (int i = 0; i < NUM_JOINTS; i++) {
+    bool offset_phase = (step_count % TARGET_PERIOD_STEPS) >= (TARGET_PERIOD_STEPS / 2);
+    for (int i = 0; i < NUM_JOINTS; i++) {
+      q_des[i] = q_ori[i] + (offset_phase ? TARGET_OFFSET_RAD : 0.0f);
+    }
+    step_count++;
+
     float q = joint_q(&joints[i]);
     float qd = joint_qd(&joints[i]);
     float tau = pd_torque(&gains[i], q_des[i], q, 0.0f, qd, 0.0f);
