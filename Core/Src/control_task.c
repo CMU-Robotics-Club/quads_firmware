@@ -5,7 +5,13 @@
 #include <stdio.h>
 #include "joint_interface.h"
 #include "joint_control.h"
+#include "usb_proto.h"
 #include <string.h>
+
+/* Host (Jetson) must send CMD_JOINTS at least this often once it has started.
+ * The host sends at 100 Hz (10 ms), so 100 ms = 10 missed frames: rides out jitter,
+ * still stops a dead host quickly. */
+#define USB_CMD_TIMEOUT_MS 100U
 
 // volatile since ISRs can overwrite these vars
 // So we don't want the cpu to cache it locally
@@ -20,6 +26,10 @@ extern void StartControlTask(void *argument) {
 
   static TickType_t last_action_tick = 0; // Used in some states to make sure we don't spam the bus with messages
   int loop_iter = 0;
+  // USB CMD_JOINTS: version of the last frame we used, and whether one arrived since RUNNING began.
+  // Until the first frame, the leg holds where it was and there is no command timeout.
+  uint32_t usb_cmd_version = 0;
+  bool usb_cmd_started = false;
   
   fast_printf("Starting control task...\n\r");
 
@@ -169,6 +179,10 @@ extern void StartControlTask(void *argument) {
         if(all_calibrated){
           fast_printf("All calibrated, running loop\r\n");
           joint_control_hold(raw_joints); // target = where the leg is now
+          // Mark frames from before this point as read: they were relative to the old zero
+          qp_cmd_joints_t stale;
+          (void)qp_update(&qp_ch_CMD_JOINTS, &stale, &usb_cmd_version);
+          usb_cmd_started = false;
           sys_state = SYSTEM_STATE_RUNNING;
         }
         break;
@@ -182,11 +196,6 @@ extern void StartControlTask(void *argument) {
             sys_state = SYSTEM_STATE_FAULT;
             break;
           }
-          // if((uint32_t)xLastWakeTime > joint_command[i].last_msg_tick + pdMS_TO_TICKS(20)){
-          //   fast_printf("COMMAND TIMEOUT: JOINT %d\r\n", i);
-          //   sys_state = SYSTEM_STATE_FAULT;
-          //   break;
-          // }
           if(raw_joints[i].odrive_error != 0){
             fast_printf("ERROR on joint %d: %d\r\n", i, (unsigned int) raw_joints[i].odrive_error);
             sys_state = SYSTEM_STATE_FAULT;
@@ -197,7 +206,26 @@ extern void StartControlTask(void *argument) {
         if(sys_state != SYSTEM_STATE_RUNNING){
           break;
         }
-        // TODO: Joint contorl step will later take in joint_command
+
+        // New USB target? USB joint index == firmware joint index (KNEE_INDEX, HIP_INDEX)
+        qp_cmd_joints_t usb_cmd;
+        if(qp_update(&qp_ch_CMD_JOINTS, &usb_cmd, &usb_cmd_version) > 0){
+          for(int i = 0; i<NUM_JOINTS; i++){
+            joint_control_set_target(i, usb_cmd.j[i].q_des, usb_cmd.j[i].qd_des, usb_cmd.j[i].tau_ff);
+          }
+          if(!usb_cmd_started){
+            fast_printf("First USB command, following host targets\r\n");
+            usb_cmd_started = true;
+          }
+        }
+        // Host stopped sending (crash, unplug, Ctrl+C): go limp instead of holding a stale target
+        if(usb_cmd_started && qp_age_ms(&qp_ch_CMD_JOINTS) > USB_CMD_TIMEOUT_MS){
+          fast_printf("COMMAND TIMEOUT: no CMD_JOINTS for %lu ms\r\n",
+                      (unsigned long)qp_age_ms(&qp_ch_CMD_JOINTS));
+          sys_state = SYSTEM_STATE_FAULT;
+          break;
+        }
+
         joint_control_step(raw_joints, loop_iter%1000 == 0);
 
         // float hip_pos = raw_joints[HIP_INDEX].motor_pos_turns / 14.0f;

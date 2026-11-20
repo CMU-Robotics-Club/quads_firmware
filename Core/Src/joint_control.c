@@ -29,7 +29,9 @@ static const char *const q_names[NUM_JOINTS]   = {[KNEE_INDEX] = "knee q", [HIP_
 static const char *const qd_names[NUM_JOINTS]  = {[KNEE_INDEX] = "knee qd", [HIP_INDEX] = "hip qd"};
 static const char *const tau_names[NUM_JOINTS] = {[KNEE_INDEX] = "knee tau", [HIP_INDEX] = "hip tau"};
 
-static float q_des[NUM_JOINTS]; /* target angle, rad */
+static float q_des[NUM_JOINTS];  /* target angle, rad */
+static float qd_des[NUM_JOINTS]; /* target velocity, rad/s */
+static float tau_ff[NUM_JOINTS]; /* feed-forward torque, Nm */
 
 float pd_torque(const pd_gains_t *g, float q_des, float q, float qd_des, float qd, float tau_ff)
 {
@@ -81,6 +83,8 @@ static float joint_qd(const JointRawFeedback_t *joint)
 void joint_control_hold(const JointRawFeedback_t *joints) {
   for (int i = 0; i < NUM_JOINTS; i++) {
     q_des[i] = joint_q(&joints[i]);
+    qd_des[i] = 0.0f;
+    tau_ff[i] = 0.0f;
 #if !PD_DRY_RUN
     uint32_t mode[2] = {ODRIVE_CONTROL_MODE_TORQUE, ODRIVE_INPUT_MODE_PASSTHROUGH};
     odrive_process_tx_msg(i, ODRIVE_CMD_SET_CONTROLLER_MODE, (uint8_t *)mode, sizeof(mode));
@@ -88,9 +92,23 @@ void joint_control_hold(const JointRawFeedback_t *joints) {
   }
 }
 
+void joint_control_set_target(int joint_index, float q, float qd, float tau)
+{
+  if (joint_index < 0 || joint_index >= NUM_JOINTS) {
+    return;
+  }
+  /* The USB parser already rejects NaN/inf; checked again so a bad caller can't reach the PD. */
+  if (!isfinite(q) || !isfinite(qd) || !isfinite(tau)) {
+    return;
+  }
+  q_des[joint_index] = q;
+  qd_des[joint_index] = qd;
+  tau_ff[joint_index] = tau;
+}
+
 void joint_control_step(const JointRawFeedback_t *joints, bool print)
 {
-  
+
   // This loop tests continuous motion
   // for (int i = 0; i < NUM_JOINTS; i++) {
   //   q_des[i] += 0.001f;
@@ -98,7 +116,7 @@ void joint_control_step(const JointRawFeedback_t *joints, bool print)
   for (int i = 0; i < NUM_JOINTS; i++) {
     float q = joint_q(&joints[i]);
     float qd = joint_qd(&joints[i]);
-    float tau = pd_torque(&gains[i], q_des[i], q, 0.0f, qd, 0.0f);
+    float tau = pd_torque(&gains[i], q_des[i], q, qd_des[i], qd, tau_ff[i]);
 
 #if PD_DRY_RUN
     send_input_torque(i, 0.0f); /* only feeds the ODrive watchdog */
