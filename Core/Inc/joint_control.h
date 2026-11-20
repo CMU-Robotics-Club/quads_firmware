@@ -27,6 +27,11 @@ float pd_torque(const pd_gains_t *g, float q_des, float q, float qd_des, float q
  * where it is. With PD_DRY_RUN 0 it also switches the ODrives to torque control. */
 void joint_control_hold(const JointRawFeedback_t *joints);
 
+/* Set the PD target of one joint (joint side: rad, rad/s, Nm), e.g. from a USB CMD_JOINTS frame.
+ * Kept until the next call or joint_control_hold(). A call with an out-of-range index or any
+ * NaN/inf value is ignored. */
+void joint_control_set_target(int joint_index, float q_des, float qd_des, float tau_ff);
+
 /* Call every control period in RUNNING with this period's feedback copy.
  * print: also log q, qd and tau of every joint this period. */
 void joint_control_step(const JointRawFeedback_t *joints, bool print);
