@@ -33,6 +33,11 @@ static float q_des[NUM_JOINTS];  /* target angle, rad */
 static float qd_des[NUM_JOINTS]; /* target velocity, rad/s */
 static float tau_ff[NUM_JOINTS]; /* feed-forward torque, Nm */
 
+/* Values from the last joint_control_step(), for the STATE report. 0 until the first step. */
+static float last_q[NUM_JOINTS];
+static float last_qd[NUM_JOINTS];
+static float last_tau[NUM_JOINTS];
+
 float pd_torque(const pd_gains_t *g, float q_des, float q, float qd_des, float qd, float tau_ff)
 {
   /* !(x > 0) is also true for NaN, so a NaN limit disables output too. */
@@ -117,6 +122,9 @@ void joint_control_step(const JointRawFeedback_t *joints, bool print)
     float q = joint_q(&joints[i]);
     float qd = joint_qd(&joints[i]);
     float tau = pd_torque(&gains[i], q_des[i], q, qd_des[i], qd, tau_ff[i]);
+    last_q[i] = q;
+    last_qd[i] = qd;
+    last_tau[i] = tau;
 
 #if PD_DRY_RUN
     send_input_torque(i, 0.0f); /* only feeds the ODrive watchdog */
@@ -130,6 +138,19 @@ void joint_control_step(const JointRawFeedback_t *joints, bool print)
       print_float(tau_names[i], tau);
     }
   }
+}
+
+void joint_control_get_state(int joint_index, float *q, float *qd, float *tau)
+{
+  if (joint_index < 0 || joint_index >= NUM_JOINTS) {
+    *q = 0.0f;
+    *qd = 0.0f;
+    *tau = 0.0f;
+    return;
+  }
+  *q = last_q[joint_index];
+  *qd = last_qd[joint_index];
+  *tau = last_tau[joint_index];
 }
 
 void joint_control_feed_watchdog(void)

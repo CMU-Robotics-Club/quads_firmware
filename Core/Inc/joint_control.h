@@ -36,6 +36,11 @@ void joint_control_set_target(int joint_index, float q_des, float qd_des, float 
  * print: also log q, qd and tau of every joint this period. */
 void joint_control_step(const JointRawFeedback_t *joints, bool print);
 
+/* q (rad), qd (rad/s) and the commanded tau (Nm, after the clamp) from the last
+ * joint_control_step(). All 0 before the first step; they stop updating after a FAULT.
+ * Out-of-range index gives 0. Call from ControlTask (same task as the step). */
+void joint_control_get_state(int joint_index, float *q, float *qd, float *tau);
+
 /* Send Set_Input_Torque(0) to every joint. Any Set_Input_* feeds the ODrive watchdog, also in
  * IDLE, where an unfed watchdog raises WATCHDOG_TIMER_EXPIRED (seen on fw 0.6.11).
  * Call every control period in the states between WAIT_CAN and RUNNING. */

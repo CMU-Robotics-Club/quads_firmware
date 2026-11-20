@@ -124,11 +124,11 @@ link.close()
 ```python
 # scripts/my_test.py
 import struct
-STATE = struct.Struct("<" + "ff" * QP_MAX_JOINTS)  # example: (q, qd) x 12
-link.on(0x84, lambda p: print(STATE.unpack(p)[0]))
+STATE = struct.Struct("<" + "fff" * QP_MAX_JOINTS + "B")  # 12 x (q, qd, tau_cmd), sys_state
+link.on(0x84, lambda p: print(STATE.unpack(p)[0], STATE.unpack(p)[-1]))  # joint 0 q, sys_state
 ```
 
-Today the STM32 only sends `ACK`. Sending your own data from a firmware task (for example `STATE`) is planned. `qp_send()` is UsbTask-only for now.
+The STM32 sends `ACK` and `STATE`. `qp_send()` is UsbTask-only: a firmware task that wants to send data hands it to UsbTask (see `usb_state.c` for the pattern).
 
 ## Existing messages
 
@@ -137,6 +137,12 @@ Today the STM32 only sends `ACK`. Sending your own data from a firmware task (fo
 | `0x01` | `CMD_JOINTS` | 12 × (`q_des`, `qd_des`, `tau_ff`) f32 = 144 B | no |
 | `0x03` | `CMD_GAINS` | 12 × (`kp`, `kd`, `tau_max`) f32 = 144 B | yes |
 | `0x83` | `ACK` (STM32 → host) | `ack_type u8, ack_seq u16, err u8` | — |
+| `0x84` | `STATE` (STM32 → host) | 12 × (`q`, `qd`, `tau_cmd`) f32 + `sys_state` u8 = 145 B, every 10 ms while the CMD port is open | — |
+
+`STATE` notes:
+- `tau_cmd` is the torque the PD loop commanded (after the clamp), not a measurement. With `PD_DRY_RUN 1` it is computed but not sent to the ODrives.
+- Joint values are 0 until `RUNNING` and freeze after `FAULT`.
+- `sys_state`: 0 INIT, 1 WAIT_CAN, 2 CLEAR_ERRORS, 3 ARM_MOTORS, 4 CALIBRATE_OFFSETS, 5 RUNNING, 6 FAULT.
 
 ## Rules for host code
 
