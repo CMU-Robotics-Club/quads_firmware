@@ -17,6 +17,7 @@
 #include "usb_otg.h"
 #include "tusb.h"
 #include "usb_proto.h"
+#include "usb_state.h"
 
 static void usb_hw_init(void)
 {
@@ -54,8 +55,10 @@ void StartUsbTask(void *argument)
   tusb_init(BOARD_TUD_RHPORT, &dev_init);
 
   for (;;) {
-    /* Blocks until the IRQ posts an event. Zero CPU when the bus is idle. */
-    tud_task();
+    /* Waits for an IRQ event, but at most 1 ms, so the STATE report can go out on time
+     * even when the host sends nothing. Near-zero CPU when idle (one wake-up per ms). */
+    tud_task_ext(1, false);
+    usb_state_send_if_due();
   }
 }
 

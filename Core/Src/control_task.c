@@ -6,6 +6,7 @@
 #include "joint_interface.h"
 #include "joint_control.h"
 #include "usb_proto.h"
+#include "usb_state.h"
 #include <string.h>
 
 /* Host (Jetson) must send CMD_JOINTS at least this often once it has started.
@@ -252,5 +253,19 @@ extern void StartControlTask(void *argument) {
         }
         break;
     }
+
+    // Hand this period's state to UsbTask for the STATE report (sent every 10 ms).
+    // Joint values are 0 until RUNNING; sys_state tells the host which stage we are in.
+    qp_state_t state = {0};
+    for(int i = 0; i<NUM_JOINTS; i++){
+      // Locals, not &state.j[i].q: pointers into a packed struct may be unaligned
+      float q, qd, tau;
+      joint_control_get_state(i, &q, &qd, &tau);
+      state.j[i].q = q;
+      state.j[i].qd = qd;
+      state.j[i].tau_cmd = tau;
+    }
+    state.sys_state = (uint8_t)sys_state;
+    usb_state_publish(&state);
   }
 }
